@@ -1404,14 +1404,14 @@
     var s = state.step, on = document.querySelector('.scene.on'), full = state.full || state.bank >= state.cap;
     if (s === 1) return { t: on.querySelector('.btn-g'), side: 'below', under: on.querySelector('.pop'), n: 'NEW FEATURE', x: 'The bank opens at level 5, on Home. Tap <b>GOT IT</b>.' };
     if (s === 2 && state.broke) return { t: $('replay'), side: 'below', x: '', ring: true };
-    if (s === 2 && state.home >= minFor()) return { t: $('homeTile'), side: 'right', n: 'OPEN IT', x: 'Your bank has <b>' + state.home + ' gold</b>. Tap it to break it.' };
+    if (s === 2 && state.home >= minFor()) return { t: $('homeTile'), dy: -.38, ring: true, side: 'right', n: 'OPEN IT', x: 'Your bank has <b>' + state.home + ' gold</b>. Tap it to break it.' };
     if (s === 2) return { t: on.querySelector('.hit[data-go="3"]'), side: 'left', n: 'FILL IT', x: 'Your Piggy Bank is on Home, top left. Play a match to fill it: tap <b>BATTLE</b>.' };
     if (s === 3) return { t: on.querySelector('.hit[data-after]'), side: 'above', n: 'AFTER A MATCH',
       x: state.full ? 'Your bank is full, so this match added nothing. Tap <b>CONTINUE</b>.' : 'This match put <b>+' + (state.afterMatch - state.home) + ' gold</b> in your bank, win or lose. Tap <b>CONTINUE</b>.' };
     if (s === 4 && $('breakBtn').disabled) return { t: on.querySelector('.xbtn'), side: 'above', n: 'NOT YET', x: 'Breaking unlocks at ' + minFor() + ' gold. Close it and play a match.' };
     if (s === 4) return { t: $('breakBtn'), side: 'below', under: $('bankPop'), n: full ? 'FULL BANK' : 'BREAK IT',
       x: full ? 'Full bank: <b>600 gold for ' + state.price + '</b>. Tap <b>BREAK</b>.' : 'Break now for <b>' + state.bank + ' gold</b>, or keep filling to ' + fmt(state.cap) + '. Tap <b>BREAK</b>.' };
-    if (s === 5) return { t: on.querySelector('.htile.full'), side: 'right', n: 'FULL BANK', x: 'Full. Matches stop adding gold until you break it. <b>Tap the bank.</b>' };
+    if (s === 5) return { t: on.querySelector('.htile.full'), dy: -.38, ring: true, side: 'right', n: 'FULL BANK', x: 'Full. Matches stop adding gold until you break it. <b>Tap the bank.</b>' };
     if (s === 6) return { t: $('ycont'), side: 'left', n: 'DONE', x: '<b>' + state.brk + ' gold</b> credited in this demo. Tap <b>CONTINUE</b>.' };
   }
   function boxIn(el) {   // centre and half size of an element, in cqw, ignoring transforms
@@ -1421,7 +1421,7 @@
   function showTap() {
     var g = guideFor(); if (!g || !g.t || !g.t.offsetWidth) return;
     var b = boxIn(g.t);
-    tapEl.style.left = b.x + 'cqw'; tapEl.style.top = b.y + 'cqw'; tapEl.classList.toggle('ring', !!g.ring); tapEl.classList.add('on');
+    tapEl.style.left = b.x + 'cqw'; tapEl.style.top = (b.y + (g.dy || 0) * b.hh) + 'cqw'; tapEl.classList.toggle('ring', !!g.ring); tapEl.classList.add('on');
     if (!g.x) return;
     $('guideTx').innerHTML = (g.n ? '<span class="gn">' + g.n + '</span>' : '') + g.x;
     guideEl.style.left = '0'; guideEl.style.top = '0'; guideEl.classList.add('on');
