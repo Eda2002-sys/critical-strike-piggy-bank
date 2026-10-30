@@ -1002,6 +1002,7 @@
     loss: { base: 15, kills: 12, hs: 2, bg: 'assets/demo-bg-rewards-loss.webp', pos: [[44.1, 63.6], [54.5, 29.5], [63.4, 29.5]] }
   };
   var matchResult = 'win';
+  Object.keys(MATCHES).forEach(function (k) { new Image().src = MATCHES[k].bg; });   // preload both rewards screens: no black frame on switching
   function earn() { var m = MATCHES[matchResult]; return m.base + m.kills * 2 + m.hs; }   // win 30 + 34 + 13 = 77; loss 15 + 24 + 2 = 41
   var START = 240, AFTER = START + earn(); // 240 on Home before the match, 317 after the win
   var MIN = 250;                         // first bank: break from 250 gold (TRY 0.40 per gold, the shop's best rate)
