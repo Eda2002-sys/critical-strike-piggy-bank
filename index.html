@@ -1654,7 +1654,8 @@
   var barHint = $('barhint'), barHintOff = false;
   function barsCheck() {
     var ws = window.screen, shortSide = Math.min(ws.width, ws.height), land = innerWidth > innerHeight && innerHeight < 520;   // 'screen' is the game element here
-    var bars = land && innerHeight < shortSide * 0.82;
+    var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;   // phones only: a short desktop window is not Safari's bars
+    var bars = touch && land && innerHeight < shortSide * 0.82;
     barHint.classList.toggle('on', bars && !barHintOff);
   }
   barHint.addEventListener('click', function () { barHintOff = true; barsCheck(); });
