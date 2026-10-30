@@ -595,6 +595,8 @@
   .rtog span { font-family: "Russo One"; font-size: .85cqw; color: #ffd21a; letter-spacing: .08em; margin-right: .3cqw; }
   .rtog button { font-family: "Russo One"; font-size: 1.05cqw; color: #c3c8d1; background: transparent; border: 0; border-radius: .35cqw; padding: .3cqw .9cqw; cursor: pointer; }
   .rtog button.on { background: #ffd21a; color: #111; }
+  .rtog button { position: relative; }
+  .rtog button::after { content: ""; position: absolute; left: -.5cqw; right: -.5cqw; top: -1.6cqw; bottom: -3.2cqw; }   /* about 44 px tall on a phone, growing down because the switch sits at the top edge */
   html.hero .rtog { display: none; }
   .guide { position: absolute; left: 0; top: 0; z-index: 9; display: none; pointer-events: none; width: max-content; max-width: 27cqw; }
   .guide.on { display: block; animation: fadeUp .3s var(--ease-out) both; }
@@ -652,9 +654,15 @@
 
   /* Phone held sideways: the game fills the screen, like the real app */
   .mtab, .mmenu { display: none; }
+  .barhint { display: none; position: fixed; top: max(8px, env(safe-area-inset-top, 0px)); left: max(8px, env(safe-area-inset-left, 0px)); z-index: 42; pointer-events: auto;
+    width: 112px; padding: 7px 9px; border-radius: 8px; background: rgba(10,12,16,.9); box-shadow: 0 0 0 1px rgba(255,210,30,.6) inset;
+    color: #fff; font: 600 11px/1.35 Rubik, sans-serif; }   /* sits in the black side bar that appears when Safari's bars shrink the game */
+  .barhint b { color: #ffd21a; }
   @media (orientation: landscape) and (max-height: 520px) {
     html, body { height: 100%; background: #000; }
+    html { height: calc(100% + 1px); }   /* 1px of scroll lets iOS Safari hide its bars on a swipe */
     body { padding: 0; justify-content: center; overflow: hidden; }
+    .barhint.on { display: block; }
     .wrap { max-width: none; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; }
     .caption, .rotate, .steps, .nav, .footer { display: none !important; }
     .phone { padding: 0 !important; border-radius: 0 !important; background: none; box-shadow: none; width: min(100vw, calc(100vh * 2.167)); width: min(100dvw, calc(100dvh * 2.167)); }
@@ -972,6 +980,7 @@
     <button class="snd" id="snd" type="button" title="Sound on or off"></button>
   </div>
   <button class="mtab" id="mtab" type="button" title="Steps">&#9776;</button>
+  <div class="barhint" id="barhint" role="status"><b>Bigger view:</b> swipe up on the page to hide Safari's bars. &#10005;</div>
   <div class="mmenu" id="mmenu"><div class="box"><b>PIGGY BANK DEMO</b>
     <button data-m="1">1 Intro</button><button data-m="2">2 Home</button><button data-m="3">3 After a match</button>
     <button data-m="4">4 Bank</button><button data-m="5">5 Full</button><button data-m="6">6 Break</button>
@@ -1640,6 +1649,18 @@
     if (m !== 'x') go(+m);
   });
   window.addEventListener('resize', hideTap);
+
+  // iOS Safari in landscape: when its address and tab bars are open the game shrinks; suggest a swipe to hide them
+  var barHint = $('barhint'), barHintOff = false;
+  function barsCheck() {
+    var ws = window.screen, shortSide = Math.min(ws.width, ws.height), land = innerWidth > innerHeight && innerHeight < 520;   // 'screen' is the game element here
+    var bars = land && innerHeight < shortSide * 0.82;
+    barHint.classList.toggle('on', bars && !barHintOff);
+  }
+  barHint.addEventListener('click', function () { barHintOff = true; barsCheck(); });
+  window.addEventListener('resize', barsCheck);
+  if (window.visualViewport) visualViewport.addEventListener('resize', barsCheck);
+  barsCheck();
   $('next').addEventListener('click', next);
   document.addEventListener('keydown', function (e) {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
