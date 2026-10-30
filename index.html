@@ -101,7 +101,7 @@
   .pigmeter { position: relative; }
   .drop { position: absolute; left: 50%; top: -1.6cqw; width: 2cqw; margin-left: -1.6cqw; opacity: 0; pointer-events: none; z-index: 3; }
   .drop.go { animation: dropIn .62s cubic-bezier(.55,0,.9,.45) both; }
-  @keyframes dropIn { 0% { opacity: 0; transform: translateY(-2.4cqw) rotateY(0) scale(1.1); } 15% { opacity: 1; } 85% { opacity: 1; transform: translateY(2.3cqw) rotateY(360deg) scale(.8); } 100% { opacity: 0; transform: translateY(2.8cqw) rotateY(420deg) scale(.5); } }
+  @keyframes dropIn { 0% { opacity: 0; transform: translateY(-.4cqw) rotateY(0) scale(1.1); } 20% { opacity: 1; } 85% { opacity: 1; transform: translateY(2.3cqw) rotateY(360deg) scale(.8); } 100% { opacity: 0; transform: translateY(2.8cqw) rotateY(420deg) scale(.5); } }
   .plink { position: absolute; left: 50%; top: 1.1cqw; margin-left: -.7cqw; font-family: "Russo One"; font-size: 1.5cqw; color: var(--y); opacity: 0; pointer-events: none; z-index: 3;
     text-shadow: 0 .1cqw 0 rgba(0,0,0,.8); }
   .plink.go { animation: plusUp .8s var(--ease-out) both; }
@@ -481,7 +481,7 @@
     display: flex; flex-direction: column; align-items: center;
   }
   .ycard .t { margin-top: 1cqw; font-family: "Russo One"; font-size: 1.3cqw; color: #fff; text-transform: uppercase; }
-  .ycard .s { margin-top: .2cqw; font-family: "Russo One"; font-size: 1cqw; color: #3fd84a; min-height: 1.2cqw; }
+  .ycard .s { margin-top: .2cqw; text-align: center; font-family: "Russo One"; font-size: 1cqw; color: #3fd84a; min-height: 1.2cqw; }
   .ycard .s.g { color: #c3c8d1; }
   .ycard .a { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
   .ycard .a img, .ycard .a svg { width: 62%; height: auto; }
@@ -854,18 +854,18 @@
               </div>
               <div class="tiles">
                 <div class="tile brk sm" style="width:7.4cqw;height:7.6cqw;animation-delay:.25s"><img class="art" src="assets/demo-art-gold-pile.png" alt="Gold"><div class="q"><img class="ci" src="assets/demo-coin.svg" alt=""> <span id="bankGet">317</span></div></div>
-                <div class="tile brk sm" id="adsTile" style="width:7.4cqw;height:7.6cqw;animation-delay:.32s"><img class="art" src="assets/demo-noads.svg" alt="No forced ads" style="width:56%;margin-top:-1.2cqw"><div class="q" style="font-size:.88cqw;line-height:1.15;bottom:.4cqw">No forced ads<br><span style="color:#ecd27a">existing: any purchase</span></div></div>
+                <div class="tile brk sm" id="adsTile" style="width:7.4cqw;height:7.6cqw;animation-delay:.32s"><img class="art" src="assets/demo-noads.svg" alt="No forced ads" style="width:56%;margin-top:-1.2cqw"><div class="q" style="font-size:.88cqw;line-height:1.15;bottom:.4cqw">No forced ads<br><span style="color:#ecd27a">with any purchase</span></div></div>
               </div>
             </div>
             <div class="info">
               <button class="chip" id="rulesChip" type="button">Rules</button>
               <span class="txt" id="infoTxt"></span>
             </div>
+            <p class="note" id="bankNote"></p>
             <div class="buyrow">
               <div class="was"><small>Shop</small><s>TRY 270</s></div>
               <button class="btn-g shine" id="breakBtn" data-go="6"><span id="breakLbl">Break</span> <span class="sep"></span> <span id="breakPrice">TRY 99.99</span></button>
             </div>
-            <p class="note" id="bankNote"></p>
           </div>
         </div>
       </section>
@@ -907,7 +907,7 @@
             </div>
             <div class="ycard">
               <div class="t">No forced ads</div>
-              <div class="s">Existing benefit: any purchase</div>
+              <div class="s">With any purchase</div>
               <div class="a"><img class="art" src="assets/demo-noads.svg" alt="No forced ads" style="width:46%"></div>
               <div class="q" style="color:#3fd84a">ACTIVATED</div>
             </div>
