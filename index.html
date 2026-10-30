@@ -324,6 +324,8 @@
     font-family: "Russo One"; font-size: .95cqw; color: #fff; background: linear-gradient(180deg, #e0303a, #8e0c14);
     clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
   }
+  .htile.gain { animation: tileGain .9s var(--ease-out) both !important; }
+  @keyframes tileGain { 0% { box-shadow: 0 0 0 .12cqw var(--y) inset, 0 0 0 rgba(255,210,60,0); } 35% { box-shadow: 0 0 0 .16cqw #fff3b0 inset, 0 0 1.8cqw rgba(255,210,60,.9); } 100% { box-shadow: 0 0 0 .12cqw var(--y) inset, 0 .3cqw .9cqw rgba(0,0,0,.6); } }
   .htile:hover { filter: brightness(1.15); }
   .htile:active { filter: brightness(.9); }
   .scene.on .htile { animation: tileIn .4s var(--ease-back) .1s both; }
@@ -497,8 +499,8 @@
   .scene.on .ycard.goldc .shinebox::before { animation: sweep 2.4s ease-in-out 1.6s infinite; }
   .scene.on .ycard:not(.goldc)::after { content: ""; position: absolute; top: -20%; bottom: -20%; width: 40%; left: -60%; pointer-events: none;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); transform: skewX(-20deg); animation: sweep 3.2s ease-in-out 2.2s infinite; }
-  .spark { position: absolute; width: 1.1cqw; height: 1.1cqw; opacity: 0; pointer-events: none;
-    background: radial-gradient(circle, #fff 0 12%, transparent 13%), linear-gradient(90deg, transparent 45%, #fff6c8 50%, transparent 55%), linear-gradient(0deg, transparent 45%, #fff6c8 50%, transparent 55%); }
+  .spark { position: absolute; width: 1.5cqw; height: 1.5cqw; margin: -.75cqw 0 0 -.75cqw; opacity: 0; pointer-events: none; filter: drop-shadow(0 0 .25cqw rgba(255,240,180,.9));
+    background: radial-gradient(circle, #fff 0 16%, transparent 18%), linear-gradient(90deg, transparent 44%, #fff 50%, transparent 56%), linear-gradient(0deg, transparent 44%, #fff 50%, transparent 56%); }
   .scene.on .spark { animation: twinkle 1.6s ease-in-out infinite; }
   .yreceipt {
     position: absolute; left: 50%; top: 66.5%; transform: translateX(-50%); width: 34cqw; text-align: center;
@@ -582,6 +584,12 @@
 
 
   /* Step guide: a CS-style yellow tutorial note next to the thing to tap, plus a finger on it */
+  .rtog { position: absolute; left: 50%; top: 1.4%; transform: translateX(-50%); z-index: 8; display: flex; align-items: center; gap: .3cqw;
+    padding: .25cqw .3cqw .25cqw .7cqw; background: rgba(10,12,16,.82); border: .12cqw dashed #ffd21a; border-radius: .5cqw; }
+  .rtog span { font-family: "Russo One"; font-size: .85cqw; color: #ffd21a; letter-spacing: .08em; margin-right: .3cqw; }
+  .rtog button { font-family: "Russo One"; font-size: 1.05cqw; color: #c3c8d1; background: transparent; border: 0; border-radius: .35cqw; padding: .3cqw .9cqw; cursor: pointer; }
+  .rtog button.on { background: #ffd21a; color: #111; }
+  html.hero .rtog { display: none; }
   .guide { position: absolute; left: 0; top: 0; z-index: 9; display: none; pointer-events: none; width: max-content; max-width: 27cqw; }
   .guide.on { display: block; animation: fadeUp .3s var(--ease-out) both; }
   .guide .gx { background: linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,.8)); border-left: .26cqw solid #ffd21a; padding: .6cqw 1.1cqw;
@@ -820,7 +828,7 @@
 
       <!-- 3 After a match: the game's own rewards screen (Victory x1, Kill x17, Headshot x13) -->
       <section class="scene" data-step="3">
-        <img class="bg" src="assets/demo-bg-rewards.webp" alt="Critical Strike match rewards screen">
+        <img class="bg" id="rwBg" src="assets/demo-bg-rewards.webp" alt="Critical Strike match rewards screen">
         <div class="rcard" id="rcard">
           <div class="head">PIGGY BANK</div>
           <svg class="pig" id="rcPig"><use href="#pig"/></svg>
@@ -833,6 +841,7 @@
         <div class="plusl" id="plK" style="left:59%;top:29.5%"><img class="ci" src="assets/demo-coin.svg" alt="">+34</div>
         <div class="plusl" id="plH" style="left:68%;top:29.5%"><img class="ci" src="assets/demo-coin.svg" alt="">+13</div>
         <div class="hit" data-go="2" tabindex="0" role="button" data-after="1" title="Continue" style="left:81.1%;top:88%;width:14.7%;height:9%"></div>
+        <div class="rtog" id="rtog" role="group" aria-label="Demo match result"><span>DEMO</span><button type="button" data-r="win" class="on">Victory</button><button type="button" data-r="loss">Defeat</button></div>
       </section>
 
       <!-- 4 Bank (any amount, or the full offer at 600) -->
@@ -901,9 +910,9 @@
               <div class="a"><img class="art" id="pile" src="assets/demo-art-gold-pile.svg" alt="Gold"></div>
               <div class="q"><img class="ci" src="assets/demo-coin.svg" alt="">x<span id="breakAmt">600</span></div>
               <span class="shinebox"></span>
-              <i class="spark" style="left:22%;top:34%;animation-delay:1.7s"></i>
-              <i class="spark" style="left:70%;top:42%;animation-delay:2.2s"></i>
-              <i class="spark" style="left:48%;top:58%;animation-delay:2.6s"></i>
+              <i class="spark" style="left:47%;top:37%;animation-delay:1.7s"></i>
+              <i class="spark" style="left:63%;top:45%;animation-delay:2.2s"></i>
+              <i class="spark" style="left:33%;top:52%;animation-delay:2.6s"></i>
             </div>
             <div class="ycard">
               <div class="t">No forced ads</div>
@@ -972,9 +981,14 @@
   var COIN = 'assets/demo-coin.svg';
   var PRICE1 = 'TRY 99.99', PRICE2 = 'TRY 149.99';
   var GOLD0 = 176;                       // gold shown on the Home screenshot
-  var MATCH = { win: 30, kills: 17, hs: 13 };   // the rewards screenshot: Victory x1, Kill x17, Headshot x13
-  var EARN = MATCH.win + MATCH.kills * 2 + MATCH.hs * 1;   // 30 + 34 + 13 = 77
-  var AFTER = 317, START = AFTER - EARN; // 240 on Home before the match, 317 after it
+  // Two real Critical Strike reward screens: a win (Kill x17, Headshot x13) and a loss (Kill x12, Headshot x2, -4 trophies)
+  var MATCHES = {
+    win:  { base: 30, kills: 17, hs: 13, bg: 'assets/demo-bg-rewards.webp', pos: [[50, 29.5], [59, 29.5], [68, 29.5]] },
+    loss: { base: 15, kills: 12, hs: 2, bg: 'assets/demo-bg-rewards-loss.webp', pos: [[44.1, 63.6], [54.5, 29.5], [63.4, 29.5]] }
+  };
+  var matchResult = 'win';
+  function earn() { var m = MATCHES[matchResult]; return m.base + m.kills * 2 + m.hs; }   // win 30 + 34 + 13 = 77; loss 15 + 24 + 2 = 41
+  var START = 240, AFTER = START + earn(); // 240 on Home before the match, 317 after the win
   var MIN = 250;                         // first bank: break from 250 gold (TRY 0.40 per gold, the shop's best rate)
   function minFor() { return state.cap === 1000 ? 375 : MIN; }  // second bank: 149.99 / 0.40 = 375
   var root = document.documentElement;
@@ -1198,6 +1212,28 @@
     later(one, 900);
   }
 
+  // After a match: the tile counts up from the old amount, with a +N pop, so the gold visibly lands in the bank
+  function countHome(from, to) {
+    if (noMotion() || to <= from) return;
+    var num = $('homeNum'), fill = $('homeFill'), t0 = 0, D = 900;
+    num.textContent = from + ' / ' + fmt(state.cap); fill.style.width = pct(from, state.cap);
+    setFill($('homePig'), from / state.cap);
+    later(function () {
+      var tile = $('homeTile'), p = document.createElement('span');
+      p.className = 'plink go'; p.textContent = '+' + (to - from); p.style.top = '-1.2cqw'; tile.appendChild(p);
+      later(function () { p.remove(); }, 900);
+      sfx('coin'); bumpPig($('homePig')); setFill($('homePig'), to / state.cap, from / state.cap);
+      tile.classList.remove('gain'); void tile.offsetWidth; tile.classList.add('gain');
+      (function step(now) {
+        if (!t0) t0 = now;
+        var k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3), v = Math.round(from + (to - from) * e);
+        num.textContent = v + ' / ' + fmt(state.cap); fill.style.width = pct(v, state.cap);
+        if (k < 1 && state.step === 2) requestAnimationFrame(step);
+        else if (state.step === 2) { num.textContent = to + ' / ' + fmt(state.cap); fill.style.width = pct(to, state.cap); }
+      })(performance.now());
+    }, 450);
+  }
+
   function renderHome() {
     var t = $('homeTile');
     $('homeNum').textContent = state.home + ' / ' + fmt(state.cap);
@@ -1257,7 +1293,13 @@
   function renderMatch(scene) {
     var card = $('rcard'), rf = $('rcFill');
     var from = state.home, full = state.full || from >= state.cap;
-    var to = full ? state.cap : Math.min(state.cap, from + EARN);
+    var m = MATCHES[matchResult], bg = $('rwBg');
+    if ((bg.getAttribute('data-r') || 'win') !== matchResult) { bg.setAttribute('src', m.bg); bg.setAttribute('data-r', matchResult); }
+    document.querySelectorAll('#rtog button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-r') === matchResult); });
+    [['plV', m.base], ['plK', m.kills * 2], ['plH', m.hs]].forEach(function (q, i) {
+      var el = $(q[0]); el.lastChild.nodeValue = '+' + q[1]; el.style.left = m.pos[i][0] + '%'; el.style.top = m.pos[i][1] + '%';
+    });
+    var to = full ? state.cap : Math.min(state.cap, from + earn());
     var plus = to - from;
     card.classList.toggle('full', full);
     var rp = $('rcPig'); rp.classList.toggle('is-full', full); setFill(rp, Math.min(1, from / state.cap));
@@ -1271,11 +1313,12 @@
     rf.style.width = pct(from, state.cap); void rf.offsetWidth;
     if (noMotion()) { rf.style.width = pct(to, state.cap); $('rcNum').textContent = to; setFill(rp, to / state.cap); return; }
     $('rcNum').textContent = from;
-    sfx('victory');
-    // "+N" pops over Victory, Kill and Headshot, then coins arc into the bank card
-    var src = [[50, 'plV', .55, 2], [59, 'plK', .7, 3], [68, 'plH', .85, 2]];
-    var tgt = posIn(card), y0 = 41 * 0.4614, n = 0;
+    if (matchResult === 'win') sfx('victory');
+    // "+N" pops over the result (Victory, or the lost trophies), Kill and Headshot, then coins arc into the bank card
+    var src = [[m.pos[0][0], 'plV', .55, 2, m.pos[0][1]], [m.pos[1][0], 'plK', .7, 3, m.pos[1][1]], [m.pos[2][0], 'plH', .85, 2, m.pos[2][1]]];
+    var tgt = posIn(card), n = 0;
     src.forEach(function (s) {
+      var y0 = (s[4] + 11.5) * 0.4614;
       $(s[1]).style.animationDelay = s[2] + 's';
       for (var k = 0; k < s[3]; k++) {
         var dl = s[2] + .12 + k * .1 + rnd(0, .04), du = rnd(.55, .7);
@@ -1407,7 +1450,7 @@
     if (s === 2 && state.home >= minFor()) return { t: $('homeTile'), dy: -.38, ring: true, side: 'right', n: 'OPEN IT', x: 'Your bank has <b>' + state.home + ' gold</b>. Tap it to break it.' };
     if (s === 2) return { t: on.querySelector('.hit[data-go="3"]'), side: 'left', n: 'A FEW MATCHES LATER', x: 'Your bank (top left) now holds <b>' + state.home + ' gold</b>. Play one more: tap <b>BATTLE</b>.' };
     if (s === 3) return { t: on.querySelector('.hit[data-after]'), side: 'above', n: 'AFTER A MATCH',
-      x: state.full ? 'Your bank is full, so this match added nothing. Tap <b>CONTINUE</b>.' : 'This match put <b>+' + (state.afterMatch - state.home) + ' gold</b> in your bank, win or lose. Tap <b>CONTINUE</b>.' };
+      x: state.full ? 'Your bank is full, so this match added nothing. Tap <b>CONTINUE</b>.' : (matchResult === 'loss' ? 'Even this loss put <b>+' : 'This win put <b>+') + (state.afterMatch - state.home) + ' gold</b> in your bank. Tap <b>CONTINUE</b>.' };
     if (s === 4 && $('breakBtn').disabled) return { t: on.querySelector('.xbtn'), side: 'above', n: 'NOT YET', x: 'Breaking unlocks at ' + minFor() + ' gold. Close it and play a match.' };
     if (s === 4) return { t: $('breakBtn'), side: 'below', under: $('bankPop'), n: full ? 'FULL BANK' : 'BREAK IT',
       x: full ? 'Full bank: <b>600 gold for ' + state.price + '</b>. Tap <b>BREAK</b>.' : 'Break now for <b>' + state.bank + ' gold</b>, or keep filling to ' + fmt(state.cap) + '. Tap <b>BREAK</b>.' };
@@ -1469,7 +1512,7 @@
     state = fresh(step);
     state.full = !!opts.full;
     state.coach = step === 2;
-    if (step === 4) { state.bank = state.full ? 600 : AFTER; if (!state.full) state.home = AFTER; }
+    if (step === 4) { var aft = START + earn(); state.bank = state.full ? 600 : aft; if (!state.full) state.home = aft; }
     render();
   }
 
@@ -1489,7 +1532,8 @@
       }
       if (d.after) {                                         // continue after a match
         if (state.full) { state.step = 5; render(); return; }
-        state.home = state.afterMatch; state.step = 2; state.coach = false; render(); return;
+        var was = state.home;
+        state.home = state.afterMatch; state.step = 2; state.coach = false; render(); countHome(was, state.home); return;
       }
       if (d.close) {                                         // closing the bank goes back to where you were
         if (state.full) { state.step = 5; render(); return; }
@@ -1528,7 +1572,7 @@
   }
   stepBtns.forEach(function (b) { b.addEventListener('click', function () { go(+b.dataset.step); }); });
   $('back').addEventListener('click', back);
-  $('replay').addEventListener('click', function () { sfx('tap'); go(1); });
+  $('replay').addEventListener('click', function () { sfx('tap'); matchResult = 'win'; go(1); });
   $('snd').addEventListener('click', toggleSound);
   soundLabel();
   // Turning the phone opens the game. With rotation lock off the browser turns by itself (landscape CSS).
@@ -1601,6 +1645,12 @@
   }
   window.addEventListener('hashchange', fromHash);
   var welcome = $('welcome');
+  document.querySelectorAll('#rtog button').forEach(function (b) {   // demo switch on step 3: the same bank rules after a win or a loss
+    b.addEventListener('click', function (e) {
+      e.stopPropagation(); var r = b.getAttribute('data-r'); if (r === matchResult) return;
+      matchResult = r; sfx('tap'); render();
+    });
+  });
   function start() { welcome.classList.remove('on'); sfx('tap'); go(1); }
   $('startBtn').addEventListener('click', start);
   if (root.classList.contains('hero')) { fromHash(); }
