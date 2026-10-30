@@ -1405,7 +1405,7 @@
     if (s === 1) return { t: on.querySelector('.btn-g'), side: 'below', under: on.querySelector('.pop'), n: 'NEW FEATURE', x: 'The bank opens at level 5, on Home. Tap <b>GOT IT</b>.' };
     if (s === 2 && state.broke) return { t: $('replay'), side: 'below', x: '', ring: true };
     if (s === 2 && state.home >= minFor()) return { t: $('homeTile'), dy: -.38, ring: true, side: 'right', n: 'OPEN IT', x: 'Your bank has <b>' + state.home + ' gold</b>. Tap it to break it.' };
-    if (s === 2) return { t: on.querySelector('.hit[data-go="3"]'), side: 'left', n: 'FILL IT', x: 'Your Piggy Bank is on Home, top left. Play a match to fill it: tap <b>BATTLE</b>.' };
+    if (s === 2) return { t: on.querySelector('.hit[data-go="3"]'), side: 'left', n: 'A FEW MATCHES LATER', x: 'Your bank (top left) now holds <b>' + state.home + ' gold</b>. Play one more: tap <b>BATTLE</b>.' };
     if (s === 3) return { t: on.querySelector('.hit[data-after]'), side: 'above', n: 'AFTER A MATCH',
       x: state.full ? 'Your bank is full, so this match added nothing. Tap <b>CONTINUE</b>.' : 'This match put <b>+' + (state.afterMatch - state.home) + ' gold</b> in your bank, win or lose. Tap <b>CONTINUE</b>.' };
     if (s === 4 && $('breakBtn').disabled) return { t: on.querySelector('.xbtn'), side: 'above', n: 'NOT YET', x: 'Breaking unlocks at ' + minFor() + ' gold. Close it and play a match.' };
