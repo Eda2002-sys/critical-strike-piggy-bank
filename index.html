@@ -1,0 +1,1617 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<title>Critical Strike Piggy Bank Prototype</title>
+<meta name="description" content="A clickable Piggy Bank prototype for Critical Strike, by Edanur Şahin. Six steps on real game screens.">
+<meta property="og:title" content="Critical Strike Piggy Bank Prototype">
+<meta property="og:description" content="A clickable Piggy Bank prototype for Critical Strike, by Edanur Şahin.">
+<meta property="og:image" content="https://eda2002-sys.github.io/critical-strike-piggy-bank/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='30' cy='36' rx='24' ry='18' fill='%23c3ccd6' stroke='%230b0e11' stroke-width='3'/%3E%3Ccircle cx='27' cy='37' r='9' fill='%23ffd21a' stroke='%23c88f00' stroke-width='3'/%3E%3Cellipse cx='54' cy='40' rx='7' ry='6' fill='%23c3ccd6' stroke='%23ffd21a' stroke-width='2.5'/%3E%3Cpath d='M42 21 L46 8 L52 22 Z' fill='%23c3ccd6' stroke='%230b0e11' stroke-width='2'/%3E%3Crect x='20' y='15' width='14' height='4' rx='2' fill='%230b0e11'/%3E%3C/svg%3E">
+<link rel="preload" as="image" href="assets/demo-bg-home.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #0b0d12;
+    --y: #f5c400;
+    --y2: #ffd84a;
+    --frame: #b08f00;
+    --text: #ffffff;
+    --muted: #c3c8d1;
+    --ease-out: cubic-bezier(.22,1,.36,1);
+    --ease-back: cubic-bezier(.2,1.5,.4,1);
+    --hex: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='31' viewBox='0 0 28 48'><path d='M14 0 L28 8 L28 24 L14 32 L0 24 L0 8 Z M14 32 L14 48' fill='none' stroke='%23ffffff' stroke-opacity='0.035' stroke-width='1'/></svg>");
+    --hexg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='24' viewBox='0 0 14 24'><path d='M7 0 L14 4 L14 12 L7 16 L0 12 L0 4 Z M7 16 L7 24' fill='none' stroke='%23ffffff' stroke-opacity='0.16' stroke-width='1'/></svg>");
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--page); color: var(--text);
+    font-family: Rubik, system-ui, sans-serif;
+    min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 18px 16px 22px;
+  }
+  /* Fit the frame to the window height on laptops; never shrink below a readable width */
+  .wrap { width: 100%; max-width: min(1180px, max(620px, calc((100vh - 230px) * 2.167 + 28px))); }
+  .caption { text-align: center; margin: 0 0 14px; }
+  .caption h1 { margin: 0; font: 400 clamp(18px, 2.1vw, 26px) "Russo One", Rubik, sans-serif; letter-spacing: .02em; color: #fff; }
+  .caption h1 span { color: var(--y); }
+  .caption p { margin: 4px 0 0; font-size: 13.5px; font-weight: 500; color: #9aa3b2; }
+  .rotate { display: none; font-size: 12px; font-weight: 500; color: #8a93a3; text-align: center; margin: -4px 0 10px; }
+  @media (orientation: portrait) and (max-width: 700px) { .rotate { display: block; } }
+
+  /* Phone frame */
+  .phone {
+    position: relative; width: 100%; padding: 10px 14px; border-radius: 28px;
+    background: linear-gradient(180deg, #2a2f3a, #14171d);
+    box-shadow: 0 0 0 1px #3a404c inset, 0 20px 50px rgba(0,0,0,.6);
+  }
+  .phone::before {
+    content: ""; position: absolute; left: 4px; top: 50%; width: 5px; height: 46px;
+    transform: translateY(-50%); border-radius: 3px; background: #0a0c10;
+  }
+  .screen {
+    position: relative; width: 100%; aspect-ratio: 1400 / 646; overflow: hidden;
+    border-radius: 16px; background: #000; container-type: inline-size; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .scene { position: absolute; inset: 0; display: none; }
+  .scene.on { display: block; animation: sceneIn .28s ease-out both; }
+  @keyframes sceneIn { from { opacity: 0; filter: brightness(1.6); } }
+  .shk { position: absolute; inset: 0; }
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dim { position: absolute; inset: 0; background: rgba(0,0,0,.74); }
+  .scene.on .dim { animation: fade .25s ease-out both; }
+  .hit { position: absolute; cursor: pointer; border-radius: .3cqw; transition: background-color .15s; }
+  .hit:hover { background-color: rgba(255,255,255,.08); }
+  .hit:active { background-color: rgba(0,0,0,.15); }
+  .gold { color: var(--y); }
+  img.art { display: block; pointer-events: none; }
+  .ci { display: inline-block; width: 1.25cqw; height: auto; vertical-align: -.22cqw; }
+  button { -webkit-tap-highlight-color: transparent; }
+
+  /* Pig art */
+  .pig { display: block; width: 100%; height: auto; aspect-ratio: 120 / 92; overflow: visible; }
+
+
+  /* Pig art: built per instance (see PIG in the script), so each bank shows its own fill */
+  .pig .pb-coins { transform: translateY(calc((1 - var(--f, 0)) * 33px)); transition: transform .9s var(--ease-out); }
+  .pig .pb-eye { transform-box: fill-box; transform-origin: center; }
+  .scene.on .pig .pb-eye { animation: blink 4.6s ease-in-out 1.2s infinite; }
+  .pig .pb-over, .pig .pb-slotglow { opacity: 0; transition: opacity .3s; }
+  .pig.is-full .pb-over, .pig.is-full .pb-slotglow { opacity: 1; }
+  .scene.on .pig.is-full .pb-slotglow { animation: slotGlow 1.1s ease-in-out infinite alternate; }
+  .scene.on .pig.is-full .pb-over { animation: overBob 1.4s ease-in-out infinite; }
+  .pig .pb-crack path { opacity: 0; stroke-dasharray: 60; stroke-dashoffset: 60; }
+  .screen .scene.on .pig.bmp { animation: squash .32s var(--ease-back); transform-origin: 50% 92%; }
+  @keyframes squash { 0% { transform: scale(1); } 30% { transform: scale(1.12, .86); } 60% { transform: scale(.94, 1.08); } 100% { transform: scale(1); } }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes slotGlow { from { opacity: .45; } to { opacity: 1; } }
+  @keyframes overBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.4px); } }
+
+  /* Intro: a coin drops into the slot after each match */
+  .pigmeter { position: relative; }
+  .drop { position: absolute; left: 50%; top: -1.6cqw; width: 2cqw; margin-left: -1.6cqw; opacity: 0; pointer-events: none; z-index: 3; }
+  .drop.go { animation: dropIn .62s cubic-bezier(.55,0,.9,.45) both; }
+  @keyframes dropIn { 0% { opacity: 0; transform: translateY(-2.4cqw) rotateY(0) scale(1.1); } 15% { opacity: 1; } 85% { opacity: 1; transform: translateY(2.3cqw) rotateY(360deg) scale(.8); } 100% { opacity: 0; transform: translateY(2.8cqw) rotateY(420deg) scale(.5); } }
+  .plink { position: absolute; left: 50%; top: 1.1cqw; margin-left: -.7cqw; font-family: "Russo One"; font-size: 1.5cqw; color: var(--y); opacity: 0; pointer-events: none; z-index: 3;
+    text-shadow: 0 .1cqw 0 rgba(0,0,0,.8); }
+  .plink.go { animation: plusUp .8s var(--ease-out) both; }
+
+  /* Glow behind the pig in the bank popup; light rays once it is full */
+  .pigmeter .halo { position: absolute; left: 50%; top: 3.6cqw; width: 12cqw; height: 9cqw; transform: translate(-50%, -50%); pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(255,200,40,.32), transparent 66%); }
+  .rays { position: absolute; left: 50%; top: 50%; width: 30cqw; height: 30cqw; margin: -15cqw 0 0 -15cqw; pointer-events: none; opacity: 0;
+    background: repeating-conic-gradient(from 0deg, rgba(255,214,90,.20) 0 7deg, transparent 7deg 22deg);
+    -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 62%); mask-image: radial-gradient(circle, #000 18%, transparent 62%); }
+  .pigmeter .rays { width: 20cqw; height: 20cqw; margin: -10cqw 0 0 -10cqw; top: 3.6cqw; }
+  .full-on .pigmeter .rays { opacity: 1; }
+  .scene.on .full-on .pigmeter .rays, .scene.on .stage6 .rays { animation: spinRays 14s linear infinite; }
+  @keyframes spinRays { to { transform: rotate(360deg); } }
+
+
+  /* Welcome card: every visit starts here, so nobody lands mid-flow without context */
+  .welcome { position: absolute; inset: 0; z-index: 30; display: none; align-items: center; justify-content: center; }
+  .welcome.on { display: flex; }
+  .welcome .bg { filter: blur(.25cqw) brightness(.55); transform: scale(1.03); }
+  .welcome .pop { width: 50%; animation: popIn .42s var(--ease-back) .05s both; padding-bottom: 1.8cqw; }
+  .welcome .wpig { width: 11cqw; margin: 1.2cqw auto 0; display: block; }
+  .welcome .wsteps { display: flex; justify-content: center; gap: .6cqw; margin: 1.2cqw 1.5cqw 0; flex-wrap: wrap; }
+  .welcome .wsteps span { font: 400 1cqw "Russo One", sans-serif; color: #d6dae0; padding: .4cqw .8cqw; background: rgba(255,255,255,.06); box-shadow: 0 0 0 .08cqw #5a4b12 inset; }
+  .welcome .wsteps b { color: var(--y); font-weight: 400; margin-right: .35cqw; }
+  .welcome .btn-g { margin-top: 1.4cqw; padding: 0 5cqw; height: 4.4cqw; font-size: 1.9cqw; }
+  .welcome .meta { margin-top: .8cqw; font-size: 1.05cqw; color: #9aa3b2; font-weight: 500; }
+  html.hero .welcome { display: none !important; }
+
+  /* Bars */
+  .bar {
+    position: relative; height: 1cqw; border-radius: .15cqw;
+    background: #0a0b0d; box-shadow: 0 0 0 .1cqw #4a4a4a inset; overflow: hidden;
+  }
+  .bar > i {
+    position: absolute; left: .12cqw; top: .12cqw; bottom: .12cqw; border-radius: .1cqw; overflow: hidden;
+    background: linear-gradient(180deg, #ffe67a, #f5c400 45%, #c58f00);
+  }
+  .bar > i.grow { transition: width .9s var(--ease-out); }
+  .bar > i::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -50%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); transform: skewX(-20deg); }
+  .scene.on .bar > i::after { animation: barShine 2.8s ease-in-out 1.2s infinite; }
+  @keyframes barShine { 0% { left: -50%; } 45%, 100% { left: 120%; } }
+  .bar .mark { position: absolute; top: 0; bottom: 0; width: .12cqw; background: rgba(255,255,255,.5); }
+
+  /* Red "!" badge, same as the game's */
+  .bang {
+    position: absolute; width: 1.35cqw; height: 1.35cqw; background: linear-gradient(180deg, #ff3a3f, #c3141c);
+    box-shadow: 0 0 0 .08cqw #ff9a9d inset; color: #fff; font-family: "Russo One"; font-size: .95cqw;
+    display: flex; align-items: center; justify-content: center; border-radius: .12cqw; z-index: 3;
+  }
+
+  /* Corner brackets, used by frames and tiles */
+  .brk { position: relative; }
+  .brk::after {
+    content: ""; position: absolute; inset: -.18cqw; pointer-events: none; z-index: 2;
+    --c: #ffd21a; --l: 1.3cqw; --t: .28cqw;
+    background:
+      linear-gradient(var(--c),var(--c)) left top / var(--l) var(--t) no-repeat,
+      linear-gradient(var(--c),var(--c)) left top / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--c),var(--c)) right top / var(--l) var(--t) no-repeat,
+      linear-gradient(var(--c),var(--c)) right top / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--c),var(--c)) left bottom / var(--l) var(--t) no-repeat,
+      linear-gradient(var(--c),var(--c)) left bottom / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--c),var(--c)) right bottom / var(--l) var(--t) no-repeat,
+      linear-gradient(var(--c),var(--c)) right bottom / var(--t) var(--l) no-repeat;
+    filter: drop-shadow(0 0 .25cqw rgba(255,214,0,.8));
+  }
+  .brk.sm::after { --l: .7cqw; --t: .2cqw; inset: -.12cqw; }
+
+  /* CS popup */
+  .popwrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .pop {
+    position: relative; width: 50%;
+    background:
+      radial-gradient(ellipse 60% 55% at 50% 48%, rgba(150,110,10,.28), transparent 70%),
+      var(--hex),
+      linear-gradient(180deg, #17181b, #0e0f11);
+    box-shadow: 0 0 0 .12cqw var(--frame) inset, 0 1cqw 3cqw rgba(0,0,0,.8);
+    text-align: center; padding: 0 0 1.5cqw;
+  }
+  .scene.on .pop { animation: popIn .42s var(--ease-back) .04s both; }
+  .pop .hd {
+    position: relative; height: 4.6cqw; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.25));
+  }
+  .pop .hd::after {
+    content: ""; position: absolute; left: 4%; right: 4%; bottom: 0; height: .14cqw;
+    background: linear-gradient(90deg, transparent, rgba(245,196,0,.85) 30%, rgba(255,220,80,1) 50%, rgba(245,196,0,.85) 70%, transparent);
+    box-shadow: 0 0 .8cqw rgba(245,196,0,.7);
+  }
+  .pop h2 { margin: 0; font-family: "Russo One"; font-weight: 400; font-size: 2.05cqw; color: #f2c934; letter-spacing: .02em; text-transform: uppercase; }
+  .xbtn {
+    position: absolute; right: 1cqw; top: 50%; transform: translateY(-50%);
+    width: 2.4cqw; height: 2.4cqw; border: 0; cursor: pointer; padding: 0;
+    background: linear-gradient(180deg, #e8323a, #b5161d); box-shadow: 0 0 0 .1cqw #ff8e92 inset;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .xbtn:hover { filter: brightness(1.12); }
+  .xbtn:active { transform: translateY(-50%) scale(.92); }
+  .xbtn svg { width: 1.3cqw; height: 1.3cqw; }
+  .ribbon {
+    position: absolute; left: -.7cqw; top: -.7cqw; height: 4.6cqw; padding: 0 3cqw 0 1.4cqw; z-index: 4;
+    display: flex; align-items: center; isolation: isolate;
+    font-family: "Russo One"; font-size: 1.75cqw; color: #fff; text-shadow: 0 .12cqw 0 rgba(0,0,0,.5);
+    clip-path: polygon(0 0, 86% 0, 100% 50%, 86% 100%, 0 100%);
+    background: linear-gradient(180deg, #e0303a, #8e0c14 55%, #6a070d);
+  }
+  .ribbon::before {
+    content: ""; position: absolute; inset: .22cqw; z-index: -1;
+    clip-path: polygon(0 0, 86% 0, 100% 50%, 86% 100%, 0 100%);
+    background: linear-gradient(180deg, #c81d27, #7a0a11);
+  }
+  .scene.on .ribbon { animation: ribbonIn .4s var(--ease-back) .3s both; }
+  .lead { margin: 1.1cqw 1.5cqw 0; font-size: 1.42cqw; font-weight: 500; color: #fff; }
+  .lead b { color: var(--y); font-weight: 700; }
+  .note { margin: .5cqw 1.5cqw 0; font-size: 1.12cqw; font-weight: 500; color: var(--muted); }
+  .note b { color: #fff; font-weight: 700; }
+  .note.y { color: #ecd27a; }
+
+  /* Item tiles */
+  .tile {
+    position: relative; width: 6.6cqw; height: 6.8cqw;
+    background: linear-gradient(180deg, #121314, #0a0a0b);
+    box-shadow: 0 0 0 .09cqw #5a4b12 inset;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .tile img.art { width: 80%; height: auto; margin-top: -.3cqw; }
+  .tile .q { position: absolute; bottom: .45cqw; left: 0; right: 0; font-size: 1.05cqw; font-weight: 700; color: #fff; }
+  .tile .q .ci { width: 1cqw; }
+  .tiles { display: flex; gap: 1.1cqw; justify-content: center; }
+  .scene.on .tiles .tile { animation: tileIn .38s var(--ease-back) both; }
+
+  /* Rule tiles in intro */
+  .rule { width: 5.8cqw; height: 4.4cqw; }
+  .rule .k { font-family: "Russo One"; font-size: .92cqw; color: #d6dae0; text-transform: uppercase; margin-top: -.1cqw; }
+  .rule .v { font-family: "Russo One"; font-size: 1.35cqw; color: var(--y); margin-top: .25cqw; display: flex; align-items: center; gap: .3cqw; }
+  .rule .v .ci { width: 1.15cqw; vertical-align: 0; }
+
+  /* Info row with Rules chip */
+  .info { display: flex; align-items: center; justify-content: center; gap: .7cqw; margin-top: .9cqw; min-height: 1.8cqw; }
+  .chip {
+    font-family: "Russo One"; font-size: .92cqw; text-transform: uppercase; color: var(--y); cursor: pointer;
+    padding: .35cqw .75cqw; background: rgba(255,255,255,.06); box-shadow: 0 0 0 .08cqw #7a6614 inset; border: 0;
+  }
+  .chip:hover { background: rgba(245,196,0,.12); }
+  .chip.active { background: rgba(245,196,0,.2); color: #fff; }
+  .info .txt { font-size: 1.1cqw; font-weight: 700; color: #e6e8ec; }
+  .info .txt .r { color: var(--y); }
+
+  /* Buttons */
+  .btn-g, .btn-b {
+    position: relative; border: 0; cursor: pointer; padding: 0 2.6cqw; height: 4cqw;
+    font-family: "Russo One"; font-size: 1.6cqw; color: #fff; text-transform: uppercase;
+    text-shadow: 0 .12cqw .1cqw rgba(0,0,0,.45); display: inline-flex; align-items: center; justify-content: center; gap: 1.1cqw;
+    transition: filter .12s, transform .08s;
+  }
+  .btn-g {
+    background: var(--hexg), linear-gradient(180deg, #6df23a 0%, #2ccf1c 45%, #14a40f 100%);
+    box-shadow: 0 0 0 .1cqw #b7ff8e inset, 0 -.25cqw 0 rgba(0,0,0,.18) inset, 0 .2cqw .6cqw rgba(0,0,0,.6);
+    overflow: hidden;
+  }
+  .btn-g::before {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 30%; left: -40%; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-20deg);
+  }
+  .scene.on .btn-g.shine::before { animation: sweep 2.6s ease-in-out 1.1s infinite; }
+  .btn-g.locked {
+    background: linear-gradient(180deg, #5d636c, #3e434a); box-shadow: 0 0 0 .1cqw #8a9099 inset; cursor: default;
+    color: #dfe2e6; font-size: 1.3cqw;
+  }
+  .btn-g.locked::before, .btn-g.locked .sep, .btn-g.locked #breakPrice { display: none; }
+  .btn-b {
+    background: #0e1c33; box-shadow: 0 0 0 .14cqw #3d7fe0 inset, 0 .2cqw .6cqw rgba(0,0,0,.6);
+  }
+  .btn-g:not(.locked):hover, .btn-b:hover { filter: brightness(1.12); }
+  .btn-g:not(.locked):active, .btn-b:active { transform: scale(.96); }
+  .btn-g .sep { width: .12cqw; height: 55%; background: rgba(255,255,255,.45); }
+  .buyrow { display: flex; align-items: stretch; justify-content: center; gap: 0; margin-top: 1cqw; }
+  /* Shop price plate, styled like the game's grey crossed price */
+  .was {
+    display: none; flex-direction: column; align-items: center; justify-content: center; padding: 0 1.2cqw;
+    background: linear-gradient(180deg, #c3c8cf, #8d939b); color: #3a3f46; box-shadow: 0 0 0 .08cqw #e4e7ea inset;
+  }
+  .was small { font-size: .78cqw; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .was s { font-family: "Russo One"; font-size: 1.3cqw; text-decoration-color: #d8232b; text-decoration-thickness: .18cqw; }
+  .full-on .was { display: flex; }
+
+  /* Pig meter block */
+  .pigmeter { width: 13cqw; }
+  .pigmeter .pig { width: 9cqw; margin: 0 auto; }
+  .pigmeter .bar { margin-top: .5cqw; }
+  .pigmeter .num { font-family: "Russo One"; font-size: 1.3cqw; margin-top: .35cqw; color: #fff; }
+  .pigmeter .num span { color: var(--y); }
+  .midrow { display: flex; align-items: center; justify-content: center; gap: 2cqw; margin-top: .8cqw; }
+  .scene.on .pigmeter .pig { animation: idleBob 2.4s ease-in-out .6s infinite; }
+
+  /* Home tile */
+  .htile {
+    position: absolute; left: 27%; top: 32.4%; width: 8.4%; height: 15.4%; cursor: pointer;
+    background: var(--hex), linear-gradient(180deg, rgba(26,24,20,.94), rgba(10,10,10,.96));
+    box-shadow: 0 0 0 .1cqw #7a6614 inset, 0 .3cqw .9cqw rgba(0,0,0,.6);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: .3cqw .55cqw .4cqw;
+    overflow: visible; transition: filter .12s;
+  }
+  .htile .pig { width: 4.4cqw; margin-top: -.2cqw; }
+  .htile .lbl { font-family: "Russo One"; font-size: .8cqw; color: #fff; letter-spacing: .02em; margin-top: .05cqw; white-space: nowrap; }
+  .htile .bar { width: 100%; height: .72cqw; margin-top: .25cqw; }
+  .htile .num { font-family: "Russo One"; font-size: .9cqw; color: var(--y); margin-top: .18cqw; }
+  .htile.priced .pig { width: 3.3cqw; margin-top: -.1cqw; }
+  .htile.ready { box-shadow: 0 0 0 .12cqw var(--y) inset, 0 .3cqw .9cqw rgba(0,0,0,.6); }
+  .scene.on .htile.ready { animation: tileIn .4s var(--ease-back) .1s both, readyGlow 1.6s ease-in-out .6s infinite alternate; }
+  @keyframes readyGlow { from { box-shadow: 0 0 0 .12cqw var(--y) inset, 0 0 .3cqw rgba(245,196,0,.3); } to { box-shadow: 0 0 0 .12cqw var(--y2) inset, 0 0 1.4cqw rgba(255,210,60,.75); } }
+  .welcome .wpig { animation: idleBob 2.4s ease-in-out .6s infinite; }
+  .htile.priced .lbl { margin-top: -.15cqw; }
+  .htile .price { font-family: "Russo One"; font-size: .78cqw; color: #fff; margin-top: .15cqw; padding: .05cqw .45cqw; background: linear-gradient(180deg, #3fcf22, #179a10); }
+  .htile .bang { right: -.55cqw; top: -.55cqw; display: none; }
+  .htile .tag {
+    display: none; position: absolute; left: -.5cqw; top: -.75cqw; z-index: 3; padding: .12cqw .9cqw .12cqw .45cqw;
+    font-family: "Russo One"; font-size: .95cqw; color: #fff; background: linear-gradient(180deg, #e0303a, #8e0c14);
+    clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
+  }
+  .htile:hover { filter: brightness(1.15); }
+  .htile:active { filter: brightness(.9); }
+  .scene.on .htile { animation: tileIn .4s var(--ease-back) .1s both; }
+  .scene.on .htile.pulse { animation: tileIn .4s var(--ease-back) .1s both, softPulse 2.2s ease-in-out .9s infinite; }
+  .htile.full { box-shadow: 0 0 0 .14cqw var(--y) inset; }
+  .htile.full .bang, .htile.full .tag { display: flex; }
+  .htile.full .num { color: #fff; letter-spacing: .08em; }
+  .scene.on .htile.full { animation: tileIn .4s var(--ease-back) .1s both, fullGlow 1.3s ease-in-out .5s infinite alternate; }
+  .htile .sweep { position: absolute; inset: 0; overflow: hidden; pointer-events: none; display: none; }
+  .htile .rise { position: absolute; left: 0; right: 0; top: -1cqw; height: 0; pointer-events: none; display: none; }
+  .htile.full .rise { display: block; }
+  .htile .rise i { position: absolute; bottom: 0; width: .9cqw; height: .9cqw; border-radius: 50%; opacity: 0;
+    background: radial-gradient(circle at 35% 35%, #fff6b0, #ffd21a 45%, #c88f00); box-shadow: 0 0 .4cqw rgba(255,210,60,.8); }
+  .htile .rise i:nth-child(1) { left: 18%; } .htile .rise i:nth-child(2) { left: 38%; } .htile .rise i:nth-child(3) { left: 58%; }
+  .htile .rise i:nth-child(4) { left: 78%; } .htile .rise i:nth-child(5) { left: 48%; }
+  .scene.on .htile.full .rise i { animation: coinRise 2.4s ease-out infinite; }
+  .scene.on .htile.full .rise i:nth-child(2) { animation-delay: .5s; } .scene.on .htile.full .rise i:nth-child(3) { animation-delay: 1s; }
+  .scene.on .htile.full .rise i:nth-child(4) { animation-delay: 1.5s; } .scene.on .htile.full .rise i:nth-child(5) { animation-delay: 1.9s; }
+  @keyframes coinRise { 0% { opacity: 0; transform: translateY(0) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-3.2cqw) scale(1); } }
+  .htile.full .sweep { display: block; }
+  .htile .sweep::before, .shinebox::before {
+    content: ""; position: absolute; top: -20%; bottom: -20%; width: 40%; left: -60%;
+    background: linear-gradient(90deg, transparent, rgba(255,230,120,.5), transparent); transform: skewX(-20deg);
+  }
+  .scene.on .htile.full .sweep::before { animation: sweep 2.2s ease-in-out .6s infinite; }
+  .scene.on .htile.full .bang { animation: bangPop .4s var(--ease-back) .35s both; }
+
+  /* First-time coach mark, like the game's tutorial arrow and yellow hint */
+  .coach { position: absolute; left: 36%; top: 34.5%; display: none; align-items: center; gap: .4cqw; pointer-events: none; z-index: 4; }
+  .coach.on { display: none; }
+  .coach svg { width: 4.2cqw; height: 4.2cqw; filter: drop-shadow(0 .2cqw .3cqw rgba(0,0,0,.7)); }
+  .coach span {
+    font-size: 1.22cqw; font-weight: 700; color: #ffd21a; white-space: nowrap; line-height: 1.3;
+    background: linear-gradient(90deg, rgba(0,0,0,.85), rgba(0,0,0,.6)); padding: .45cqw 1cqw; border-left: .22cqw solid #ffd21a;
+  }
+  .scene.on .coach.on { animation: fadeUp .4s var(--ease-out) .5s both; }
+  .scene.on .coach.on svg { animation: nudge .9s ease-in-out .9s infinite; }
+
+  /* End of the demo, on Home after the break */
+  .endcard { position: absolute; left: 41%; top: 13.2%; transform: translateX(-50%); z-index: 5; display: none; align-items: center; gap: .9cqw; white-space: nowrap;
+    background: var(--hex), linear-gradient(180deg, #17181b, #0d0e10); box-shadow: 0 0 0 .1cqw var(--frame) inset, 0 .5cqw 1.6cqw rgba(0,0,0,.7);
+    padding: .5cqw .6cqw .5cqw 1cqw; font-size: 1.15cqw; font-weight: 700; color: #fff; }
+  .endcard.on { display: flex; }
+  .endcard b { color: var(--y); }
+  .endcard .ok { width: 1.6cqw; height: 1.6cqw; display: inline-flex; align-items: center; justify-content: center; font-size: 1cqw;
+    background: linear-gradient(180deg, #5fe834, #18a812); color: #fff; }
+  .endcard .btn-b { height: 2.8cqw; font-size: 1.2cqw; padding: 0 1.6cqw; }
+  .scene.on .endcard.on { animation: toastIn .5s var(--ease-back) .5s both; }
+
+  /* Toast */
+  .toast {
+    position: absolute; left: 45%; top: 13.2%; transform: translateX(-50%); cursor: pointer; z-index: 4;
+    background: var(--hex), linear-gradient(180deg, #17181b, #0d0e10);
+    box-shadow: 0 0 0 .1cqw var(--frame) inset, 0 .5cqw 1.6cqw rgba(0,0,0,.7);
+    padding: .5cqw 1.4cqw .5cqw .8cqw; display: flex; align-items: center; gap: .8cqw; white-space: nowrap;
+    font-size: 1.15cqw; font-weight: 700; color: #fff;
+  }
+  .toast:hover { filter: brightness(1.12); }
+  .toast .pig { width: 2.8cqw; }
+  .toast b { color: var(--y); }
+  .scene.on .toast { animation: toastIn .5s var(--ease-back) .55s both; }
+
+  /* Gold counter overlay, sits on the game's own gold counter */
+  .gcount {
+    position: absolute; left: 85.8%; top: 3%; width: 6.9%; height: 4.9%; z-index: 6; display: none;
+    align-items: center; gap: .45cqw; padding: 0 .25cqw 0 .35cqw;
+    background: linear-gradient(90deg, rgba(10,11,14,.95), rgba(18,19,24,.95)); border-radius: .3cqw;
+  }
+  .gcount.on { display: flex; }
+  .gcount img { width: 1.75cqw; }
+  .gcount span { font-family: "Russo One"; font-size: 1.32cqw; color: var(--y2); flex: 1; }
+  .gcount b { width: 1.45cqw; height: 1.45cqw; display: flex; align-items: center; justify-content: center; font: 400 1.25cqw "Russo One";
+    color: #1a1400; background: linear-gradient(180deg, #ffe066, #d9a400); box-shadow: 0 0 0 .08cqw #fff1a8 inset; }
+  .gcount.hot { box-shadow: 0 0 0 .1cqw var(--y), 0 0 1.2cqw rgba(255,210,60,.8); }
+  .gcount.bump { animation: bump .3s var(--ease-back); }
+
+  /* Rewards card (step 3) */
+  .rcard {
+    position: absolute; left: 16.8%; top: 64.8%; width: 10.6%; height: 13.7%;
+    background: linear-gradient(180deg, rgba(42,42,46,.7), rgba(18,18,22,.78));
+    box-shadow: 0 0 0 .08cqw rgba(255,255,255,.3) inset;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .rcard .head {
+    position: absolute; top: -2.5cqw; left: 50%; transform: translateX(-50%);
+    font-family: "Russo One"; font-size: 1.12cqw; color: #fff; white-space: nowrap; text-shadow: 0 .1cqw .2cqw rgba(0,0,0,.6);
+  }
+  .rcard .pig { width: 4.6cqw; margin-top: -.4cqw; }
+  .rcard .amt { font-family: "Russo One"; font-size: 1.55cqw; color: #fff; display: flex; align-items: center; gap: .3cqw; margin-top: .1cqw; }
+  .rcard .amt .ci { width: 1.25cqw; vertical-align: 0; }
+  .rcard .bar { width: 82%; height: .6cqw; margin-top: .3cqw; }
+  .rcard .sub { font-family: "Russo One"; font-size: .95cqw; color: #e2e5ea; margin-top: .2cqw; }
+  .rcard.full { box-shadow: 0 0 0 .12cqw var(--y) inset, 0 0 1cqw rgba(245,196,0,.45); }
+  .rcard .fullnote { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: .5cqw;
+    font-size: .9cqw; font-weight: 700; color: #ffd21a; white-space: nowrap; }
+  .rcard.full .fullnote { display: block; }
+  .scene.on .rcard { animation: slideIn .45s var(--ease-back) .3s both; }
+  .scene.on .rcard.hit1 .pig { animation: hitPig .28s ease-out both; }
+  .scene.on .rcard.hit1 { animation: slideIn .45s var(--ease-back) .3s both, cardFlash .7s ease-out both; }
+  @keyframes cardFlash { 0% { box-shadow: 0 0 0 .08cqw rgba(255,255,255,.3) inset; } 30% { box-shadow: 0 0 0 .16cqw var(--y) inset, 0 0 1.6cqw rgba(255,210,60,.8); } 100% { box-shadow: 0 0 0 .08cqw rgba(255,255,255,.3) inset, 0 0 0 transparent; } }
+  .rcard .amt.pnum { animation: pulseNum .32s var(--ease-back); }
+
+  /* "+N" labels over the game's reward tiles (step 3) */
+  .plusl {
+    position: absolute; transform: translate(-50%, 0); font-family: "Russo One"; font-size: 1.2cqw; color: var(--y);
+    text-shadow: 0 .12cqw 0 rgba(0,0,0,.7), 0 0 .6cqw rgba(0,0,0,.6); opacity: 0; display: flex; align-items: center; gap: .25cqw; z-index: 5;
+  }
+  .plusl .ci { width: 1.05cqw; vertical-align: 0; }
+  .scene.on .plusl { animation: plusUp .9s var(--ease-out) both; }
+
+  /* Flying coins */
+  .fly { position: absolute; left: 0; top: 0; width: 1.8cqw; height: 1.8cqw; margin: -.9cqw 0 0 -.9cqw; opacity: 0; pointer-events: none; z-index: 7; }
+  .fly img { width: 100%; display: block; filter: drop-shadow(0 0 .35cqw rgba(255,210,60,.8)); }
+  .fly.go { animation: arc var(--t, .6s) cubic-bezier(.5,0,.75,1) var(--d, 0s) both; }
+  .fly.go img { animation: spinC var(--t, .6s) linear var(--d, 0s) both; }
+
+  /* Step 6: "YOU GOT" screen, modelled on the game's chest reward screen */
+  .ygbg { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 42%, #2f5373, #1a3048 55%, #0c1724); }
+  .ygtitle { position: absolute; left: 0; right: 0; top: 4.2%; text-align: center; font-family: "Russo One"; font-size: 2.1cqw; color: #fff; letter-spacing: .02em; }
+  .stage6 { position: absolute; left: 50%; top: 44%; width: 0; height: 0; z-index: 3; }
+  .stage6 > * { position: absolute; left: 0; top: 0; }
+  .stage6 .whole, .stage6 .half { width: 13cqw; margin: -5cqw 0 0 -6.5cqw; opacity: 0; }
+  .stage6 .shard { width: 13cqw; margin: -5cqw 0 0 -6.5cqw; opacity: 0; }
+  .scene.on .stage6 .shard { animation: shardOut .85s cubic-bezier(.2,.7,.4,1) .82s both; }
+  @keyframes shardOut { 0% { opacity: 1; transform: scale(1.12); } 55% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--sx), var(--sy)) rotate(var(--sr)) scale(.9); } }
+  .stage6 .hammer { width: 9cqw; margin: -11.8cqw 0 0 -3.4cqw; opacity: 0; transform-origin: 85% 90%; filter: drop-shadow(0 .3cqw .4cqw rgba(0,0,0,.6)); }
+  .scene.on .stage6 .hammer { animation: hammer .86s linear both; }
+  @keyframes hammer {
+    0% { opacity: 0; transform: rotate(-70deg) translate(2cqw,-1cqw); } 8% { opacity: 1; transform: rotate(-55deg); }
+    28% { transform: rotate(18deg); } 34% { transform: rotate(-45deg); }
+    56% { transform: rotate(20deg); } 62% { transform: rotate(-50deg); }
+    88% { opacity: 1; transform: rotate(24deg); } 100% { opacity: 0; transform: rotate(10deg) translate(1.5cqw, -1cqw); }
+  }
+  .scene.on .stage6 .whole .pb-crack .c1 { animation: crackIn .18s ease-out .26s both; }
+  .scene.on .stage6 .whole .pb-crack .c2 { animation: crackIn .18s ease-out .5s both; }
+  .scene.on .stage6 .whole .pb-crack .c3 { animation: crackIn .18s ease-out .74s both; }
+  @keyframes crackIn { from { opacity: 1; stroke-dashoffset: 60; } to { opacity: 1; stroke-dashoffset: 0; } }
+  .stage6 .rays { width: 46cqw; height: 46cqw; margin: -23cqw 0 0 -23cqw; z-index: -1; }
+  .scene.on .stage6 .rays { animation: fade .5s ease-out .8s both, spinRays 16s linear .8s infinite; }
+  .stage6 .fc { width: 1.9cqw; margin: -.95cqw 0 0 -.95cqw; opacity: 0; will-change: transform; }
+  .stage6 .flash { width: 26cqw; height: 26cqw; margin: -13cqw 0 0 -13cqw; border-radius: 50%; opacity: 0;
+    background: radial-gradient(circle, rgba(255,244,190,.95), rgba(255,200,40,.4) 38%, transparent 68%); }
+  .stage6 .bc { width: 1.8cqw; margin: -.9cqw 0 0 -.9cqw; opacity: 0; }
+  .scene.on .stage6 .whole { animation: pigShake .78s linear .05s both; }
+  .scene.on .stage6 .flash { animation: flash .55s ease-out .78s both; }
+  .scene.on .stage6 .bc { animation: burst var(--bt, .8s) cubic-bezier(.1,.7,.3,1) var(--bd, .8s) both; }
+  .scene.on .shk { animation: screenShake .34s linear .8s both; }
+  .scene.on .ygtitle { animation: fadeDown .35s var(--ease-out) .95s both; }
+
+  .ycards { position: absolute; left: 0; right: 0; top: 15.5%; display: flex; justify-content: center; gap: 1.8cqw; }
+  .ycard {
+    position: relative; width: 14.6cqw; height: 20.5cqw; border-radius: .5cqw; overflow: hidden;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.2), rgba(0,0,0,0) 45%), linear-gradient(180deg, #121417, #050607);
+    box-shadow: 0 0 0 .22cqw #8d949c inset, 0 0 0 .32cqw #2a2f35, 0 .6cqw 1.4cqw rgba(0,0,0,.5);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .ycard .t { margin-top: 1cqw; font-family: "Russo One"; font-size: 1.3cqw; color: #fff; text-transform: uppercase; }
+  .ycard .s { margin-top: .2cqw; font-family: "Russo One"; font-size: 1cqw; color: #3fd84a; min-height: 1.2cqw; }
+  .ycard .s.g { color: #c3c8d1; }
+  .ycard .a { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
+  .ycard .a img, .ycard .a svg { width: 62%; height: auto; }
+  .ycard .q { margin-bottom: 1.1cqw; font-family: "Russo One"; font-size: 1.15cqw; color: #fff; display: flex; align-items: center; gap: .3cqw; }
+  .ycard .q .ci { width: 1.15cqw; vertical-align: 0; }
+  .ycard .bar { width: 72%; height: .75cqw; margin: 0 0 .5cqw; }
+  .ycard.goldc { box-shadow: 0 0 0 .22cqw #d9b23a inset, 0 0 0 .32cqw #3a2f10, 0 0 1.6cqw rgba(245,196,0,.35); }
+  .shinebox { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .scene.on .ycard { animation: cardIn .45s var(--ease-back) both; }
+  .scene.on .ycard:nth-child(1) { animation-delay: .98s; }
+  .scene.on .ycard:nth-child(2) { animation-delay: 1.1s; }
+  .scene.on .ycard:nth-child(3) { animation-delay: 1.22s; }
+  .scene.on .ycard.goldc .shinebox::before { animation: sweep 2.4s ease-in-out 1.6s infinite; }
+  .scene.on .ycard:not(.goldc)::after { content: ""; position: absolute; top: -20%; bottom: -20%; width: 40%; left: -60%; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); transform: skewX(-20deg); animation: sweep 3.2s ease-in-out 2.2s infinite; }
+  .spark { position: absolute; width: 1.1cqw; height: 1.1cqw; opacity: 0; pointer-events: none;
+    background: radial-gradient(circle, #fff 0 12%, transparent 13%), linear-gradient(90deg, transparent 45%, #fff6c8 50%, transparent 55%), linear-gradient(0deg, transparent 45%, #fff6c8 50%, transparent 55%); }
+  .scene.on .spark { animation: twinkle 1.6s ease-in-out infinite; }
+  .yreceipt {
+    position: absolute; left: 50%; top: 66.5%; transform: translateX(-50%); width: 34cqw; text-align: center;
+    background: rgba(8,14,22,.6); box-shadow: 0 0 0 .1cqw #59636e inset; padding: .6cqw 1cqw;
+  }
+  .yreceipt .l1 { font-family: "Russo One"; font-size: 1.1cqw; color: #fff; display: flex; align-items: center; justify-content: center; gap: .6cqw; }
+  .yreceipt .ok { width: 1.4cqw; height: 1.4cqw; display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #5fe834, #18a812); color: #fff; font-size: .9cqw; font-family: Rubik; font-weight: 800; }
+  .yreceipt .l2 { margin-top: .3cqw; font-size: 1.02cqw; font-weight: 500; color: #c9d1db; }
+  .scene.on .yreceipt { animation: fadeUpC .35s var(--ease-out) 1.5s both; }
+  .ycont { position: absolute; right: 3.2%; bottom: 4.5%; padding: 0 2.6cqw; height: 3.9cqw; }
+  .scene.on .ycont { animation: fadeUp .35s var(--ease-out) 1.62s both; }
+  .scene.on .ycont.ready { animation: fadeUp .35s var(--ease-out) 1.62s both, softPulse 2.2s ease-in-out 2.6s infinite; }
+
+  /* Keyframes */
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(.7); } 55% { opacity: 1; } 100% { opacity: 1; transform: scale(1); } }
+  @keyframes ribbonIn { from { opacity: 0; transform: translateX(-2cqw); } }
+  @keyframes tileIn { from { opacity: 0; transform: translateY(.8cqw) scale(.85); } }
+  @keyframes cardIn { 0% { opacity: 0; transform: translateY(2cqw) scale(.7) rotate(-3deg); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(.8cqw); } }
+  @keyframes fadeUpC { from { opacity: 0; transform: translate(-50%, .8cqw); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-.8cqw); } }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -2cqw) scale(.9); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-4cqw); } }
+  @keyframes softPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+  @keyframes fullGlow { from { box-shadow: 0 0 0 .14cqw var(--y) inset, 0 0 .5cqw rgba(245,196,0,.4); } to { box-shadow: 0 0 0 .14cqw var(--y2) inset, 0 0 2cqw rgba(255,210,60,.95); } }
+  @keyframes sweep { 0% { left: -60%; } 50%, 100% { left: 130%; } }
+  @keyframes bangPop { from { transform: scale(0); } }
+  @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-.7cqw); } }
+  @keyframes idleBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-.25cqw); } }
+  @keyframes hitPig { 0% { transform: scale(1); } 40% { transform: scale(1.14) rotate(-4deg); } 100% { transform: scale(1); } }
+  @keyframes pulseNum { 0% { transform: scale(1); } 45% { transform: scale(1.3); color: var(--y); } 100% { transform: scale(1); } }
+  @keyframes plusUp { 0% { opacity: 0; transform: translate(-50%, .6cqw) scale(.6); } 25% { opacity: 1; transform: translate(-50%, 0) scale(1.1); } 70% { opacity: 1; transform: translate(-50%, -.8cqw) scale(1); } 100% { opacity: 0; transform: translate(-50%, -1.6cqw); } }
+  @keyframes arc {
+    0% { opacity: 0; transform: translate(0,0) scale(.5); }
+    12% { opacity: 1; transform: translate(calc(var(--dx) * .08), calc(var(--dy) * .08 - var(--h) * .4)) scale(1.1); }
+    50% { transform: translate(calc(var(--dx) * .5), calc(var(--dy) * .5 - var(--h))) scale(1.15); }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.65); }
+  }
+  @keyframes spinC { from { transform: rotateY(0); } to { transform: rotateY(540deg); } }
+  @keyframes bump { 50% { transform: scale(1.18); } }
+  @keyframes pigShake {
+    0% { opacity: 0; transform: scale(.6); }
+    16% { opacity: 1; transform: scale(1.04); }
+    30% { transform: scale(1); }
+    34% { transform: scale(1.1, .88) translateY(.3cqw); }
+    42% { transform: translateX(-.4cqw) rotate(-5deg); }
+    50% { transform: scale(1); }
+    62% { transform: scale(1.12, .86) translateY(.35cqw); }
+    70% { transform: translateX(.5cqw) rotate(6deg); }
+    80% { transform: scale(1.02); }
+    92% { transform: scale(1.16, .84) translateY(.4cqw); opacity: 1; }
+    100% { transform: scale(1.2); opacity: 0; }
+  }
+  @keyframes splitL { 0% { opacity: 1; transform: scale(1.16); } 60% { opacity: 1; } 100% { opacity: 0; transform: translate(-7cqw, 3cqw) rotate(-34deg); } }
+  @keyframes splitR { 0% { opacity: 1; transform: scale(1.16); } 60% { opacity: 1; } 100% { opacity: 0; transform: translate(7cqw, 3cqw) rotate(34deg); } }
+  @keyframes flash { 0% { opacity: 0; transform: scale(.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35); } }
+  @keyframes burst { 0% { opacity: 1; transform: translate(0,0) scale(.5) rotate(0); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--bx), var(--by)) scale(1.05) rotate(var(--br, 200deg)); } }
+  @keyframes screenShake {
+    0%, 100% { transform: none; } 15% { transform: translate(-.45cqw, .25cqw); } 30% { transform: translate(.4cqw, -.3cqw); }
+    45% { transform: translate(-.3cqw, -.2cqw); } 60% { transform: translate(.25cqw, .2cqw); } 80% { transform: translate(-.1cqw, .05cqw); }
+  }
+  @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
+
+  /* Reduced motion and still capture: show end states */
+  @media (prefers-reduced-motion: reduce) {
+    .screen *, .screen *::before, .screen *::after { animation: none !important; transition: none !important; }
+  }
+  html.still .screen *, html.still .screen *::before, html.still .screen *::after { animation: none !important; transition: none !important; }
+
+  /* Hero capture mode: only the game screen */
+  html.hero body { padding: 0; display: block; background: #000; }
+  html.hero .turn, html.hero .mtab, html.hero .tap, html.hero .guide { display: none !important; }
+  html.hero .caption, html.hero .rotate, html.hero .steps, html.hero .nav, html.hero .footer { display: none; }
+  html.hero .wrap { max-width: none; }
+  html.hero .phone { padding: 0; border-radius: 0; background: none; box-shadow: none; }
+  html.hero .phone::before { display: none; }
+  html.hero .screen { border-radius: 0; }
+
+
+  /* Step guide: a CS-style yellow tutorial note next to the thing to tap, plus a finger on it */
+  .guide { position: absolute; left: 0; top: 0; z-index: 9; display: none; pointer-events: none; width: max-content; max-width: 27cqw; }
+  .guide.on { display: block; animation: fadeUp .3s var(--ease-out) both; }
+  .guide .gx { background: linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,.8)); border-left: .26cqw solid #ffd21a; padding: .6cqw 1.1cqw;
+    font: 700 1.32cqw/1.32 Rubik, sans-serif; color: #ffd21a; box-shadow: 0 .3cqw 1cqw rgba(0,0,0,.6); }
+  .guide .gx b { color: #fff; font-weight: 800; }
+  .guide .gn { display: block; font: 400 .9cqw "Russo One", sans-serif; letter-spacing: .08em; color: #c3c8d1; margin-bottom: .2cqw; }
+
+  /* Guided tap hint, like the game's own tutorial finger */
+  .tap { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 9; pointer-events: none; display: none; }
+  .tap.on { display: block; }
+  .tap.ring svg { display: none; }
+  .tap .ring { position: absolute; left: -2.2cqw; top: -2.2cqw; width: 4.4cqw; height: 4.4cqw; border-radius: 50%;
+    border: .25cqw solid #ffd21a; box-shadow: 0 0 1cqw rgba(255,210,30,.8); animation: tapRing 1.3s ease-out infinite; }
+  .tap svg { position: absolute; left: -.4cqw; top: .2cqw; width: 3.6cqw; height: 3.6cqw; filter: drop-shadow(0 .2cqw .3cqw rgba(0,0,0,.7));
+    animation: tapPress 1.3s ease-in-out infinite; transform-origin: 30% 10%; }
+  @keyframes tapRing { 0% { transform: scale(.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+  @keyframes tapPress { 0%, 100% { transform: translate(.6cqw, .8cqw); } 40% { transform: translate(0, 0) scale(.92); } }
+
+  /* Sound toggle under the frame */
+  .nav .snd { padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .nav .snd svg { width: 16px; height: 16px; }
+
+  /* Portrait phone: ask to rotate, like the game itself */
+  .turn { display: none; }
+  @media (orientation: portrait) and (max-width: 700px) and (pointer: coarse) {
+    .turn:not(.dismissed) { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      background: radial-gradient(ellipse at 50% 40%, #1a2a3a, #05070a 70%); text-align: center; padding: 24px; }
+    .turn .ph { width: 64px; height: 110px; border: 4px solid #ffd21a; border-radius: 12px; position: relative; animation: turnPh 2.2s ease-in-out infinite; }
+    .turn .ph::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 16px; height: 3px; margin-left: -8px; border-radius: 2px; background: #ffd21a; }
+    .turn h3 { margin: 0; font: 400 22px "Russo One", Rubik, sans-serif; color: #fff; text-transform: uppercase; letter-spacing: .03em; }
+    .turn p { margin: 0; font-size: 14px; color: #c3c8d1; max-width: 280px; line-height: 1.45; }
+    .turn button { margin-top: 6px; background: none; border: 0; color: #8a93a3; font: 500 13px Rubik, sans-serif; text-decoration: underline; cursor: pointer; }
+    .turn button.side { margin-top: 10px; text-decoration: none; color: #1a1400; font: 400 17px "Russo One", sans-serif; padding: 12px 26px; letter-spacing: .03em;
+      background: linear-gradient(180deg, #ffe066, #e0a800); box-shadow: 0 0 0 1px #fff1a8 inset, 0 6px 18px rgba(0,0,0,.5); }
+    .turn small { font-size: 12px; color: #8a93a3; max-width: 260px; line-height: 1.4; }
+    html.rot body { padding: 0 !important; overflow: hidden; height: 100%; background: #000; }
+    html.rot .caption, html.rot .rotate, html.rot .steps, html.rot .nav, html.rot .footer, html.rot .turn { display: none !important; }
+    html.rot .wrap { position: fixed; inset: 0; max-width: none; padding: 0; }
+    html.rot .phone { position: absolute; left: 50%; top: 50%; padding: 0 !important; background: none; box-shadow: none; border-radius: 0 !important;
+      width: min(100vh, calc(100vw * 2.167)); width: min(100dvh, calc(100dvw * 2.167)); transform: translate(-50%, -50%) rotate(var(--rot, 90deg)); }
+    html.rot .phone::before { display: none; }
+    html.rot .screen { border-radius: 0 !important; }
+    html.rot .mtab { display: flex; position: fixed; left: 8px; top: 8px; bottom: auto; z-index: 40; width: 30px; height: 30px; align-items: center; justify-content: center;
+      border: 0; border-radius: 8px; background: rgba(10,12,16,.72); box-shadow: 0 0 0 1px rgba(255,210,30,.5) inset; color: #ffd21a; font: 400 16px "Russo One", sans-serif; transform: rotate(90deg); }
+    html.rot .mmenu.on { display: flex; position: fixed; inset: 0; z-index: 45; align-items: center; justify-content: center; background: rgba(0,0,0,.72); }
+    html.rot.ccw .mtab { left: auto; top: auto; right: 8px; bottom: 8px; transform: rotate(-90deg); }
+    html.rot .mmenu .box { transform: rotate(var(--rot, 90deg)); background: linear-gradient(180deg, #17181b, #0e0f11); box-shadow: 0 0 0 1px #b08f00 inset; padding: 14px 16px; display: grid;
+      grid-template-columns: repeat(3, auto); gap: 8px; }
+    html.rot .mmenu .box b { grid-column: 1 / -1; font: 400 15px "Russo One", sans-serif; color: #f2c934; text-align: center; }
+    html.rot .mmenu button { font: 700 13px Rubik, sans-serif; color: #fff; background: #1a1f2a; border: 0; box-shadow: 0 0 0 1px #2b3240 inset; padding: 9px 12px; }
+    html.rot .mmenu button.wide { grid-column: span 3; background: #0e1c33; box-shadow: 0 0 0 1px #3d7fe0 inset; }
+  }
+  @keyframes turnPh { 0%, 20% { transform: rotate(0); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+
+  /* Phone held sideways: the game fills the screen, like the real app */
+  .mtab, .mmenu { display: none; }
+  @media (orientation: landscape) and (max-height: 520px) {
+    html, body { height: 100%; background: #000; }
+    body { padding: 0; justify-content: center; overflow: hidden; }
+    .wrap { max-width: none; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .caption, .rotate, .steps, .nav, .footer { display: none !important; }
+    .phone { padding: 0 !important; border-radius: 0 !important; background: none; box-shadow: none; width: min(100vw, calc(100vh * 2.167)); width: min(100dvw, calc(100dvh * 2.167)); }
+    .phone::before { display: none; }
+    .screen { border-radius: 0 !important; }
+    body { padding: 0 !important; }
+    .mtab { display: flex; position: fixed; left: max(8px, env(safe-area-inset-left, 0px)); bottom: max(8px, env(safe-area-inset-bottom, 0px)); z-index: 40;
+      width: 30px; height: 30px; align-items: center; justify-content: center; border: 0; border-radius: 8px; cursor: pointer;
+      background: rgba(10,12,16,.72); box-shadow: 0 0 0 1px rgba(255,210,30,.5) inset; color: #ffd21a; font: 400 16px "Russo One", sans-serif; }
+    .mmenu.on { display: flex; position: fixed; inset: 0; z-index: 45; align-items: center; justify-content: center; background: rgba(0,0,0,.72); }
+    .mmenu .box { background: linear-gradient(180deg, #17181b, #0e0f11); box-shadow: 0 0 0 1px #b08f00 inset; padding: 14px 16px; display: grid;
+      grid-template-columns: repeat(3, auto); gap: 8px; max-width: 92vw; }
+    .mmenu .box b { grid-column: 1 / -1; font: 400 15px "Russo One", sans-serif; color: #f2c934; text-align: center; letter-spacing: .03em; }
+    .mmenu button { font: 700 13px Rubik, sans-serif; color: #fff; background: #1a1f2a; border: 0; box-shadow: 0 0 0 1px #2b3240 inset; padding: 9px 12px; cursor: pointer; }
+    .mmenu button.on { box-shadow: 0 0 0 1px #ffd21a inset; color: #ffd21a; }
+    .mmenu button.wide { grid-column: span 3; background: #0e1c33; box-shadow: 0 0 0 1px #3d7fe0 inset; }
+  }
+
+  /* Controls below frame */
+  .steps { display: flex; gap: 4px; margin: 16px auto 0; flex-wrap: wrap; justify-content: center; width: max-content; max-width: 100%;
+    padding: 4px; border-radius: 10px; background: #11151c; box-shadow: 0 0 0 1px #232a36 inset; }
+  .steps button { background: transparent; box-shadow: none; }
+  .steps button, .nav button {
+    font-family: inherit; cursor: pointer; border: 0; border-radius: 6px; font-weight: 700; font-size: 13px; padding: 7px 11px;
+    background: #1a1f2a; color: var(--muted); box-shadow: 0 0 0 1px #2b3240 inset;
+  }
+  .steps button:hover, .nav button:not(:disabled):hover { filter: brightness(1.2); }
+  button:focus-visible, .htile:focus-visible, .hit:focus-visible { outline: 2px solid var(--y); outline-offset: 2px; }
+  .steps button b { color: var(--y); margin-right: 5px; }
+  .steps button.on { background: #2a2210; color: #fff; box-shadow: 0 0 0 1px var(--y) inset; }
+  .nav { display: flex; justify-content: center; gap: 10px; margin-top: 12px; }
+  .nav button { padding: 8px 20px; color: #fff; }
+  .nav button.next { background: #1d63e0; box-shadow: 0 0 0 1px #6ea6ff inset; }
+  .nav button:disabled { opacity: .35; cursor: default; }
+  .footer { margin-top: 18px; text-align: center; font-size: 12px; color: #7d8698; font-weight: 500; }
+  @media (max-width: 600px), (max-height: 480px) {
+    body { padding: 10px 8px 14px; }
+    .phone { padding: 6px 8px; border-radius: 16px; }
+    .phone::before { display: none; }
+    .screen { border-radius: 10px; }
+    .steps { margin-top: 10px; gap: 4px; }
+    .steps button { font-size: 12px; padding: 6px 8px; }
+    .nav { margin-top: 8px; }
+    .footer { margin-top: 10px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="pgBody" cx="38%" cy="28%" r="78%">
+      <stop offset="0" stop-color="#c3ccd6"/>
+      <stop offset=".3" stop-color="#7c8794"/>
+      <stop offset=".65" stop-color="#3d4651"/>
+      <stop offset="1" stop-color="#171b20"/>
+    </radialGradient>
+    <linearGradient id="pgDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a646f"/>
+      <stop offset="1" stop-color="#1a1e24"/>
+    </linearGradient>
+    <linearGradient id="pgGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff2a8"/>
+      <stop offset=".45" stop-color="#f5c400"/>
+      <stop offset="1" stop-color="#a86f00"/>
+    </linearGradient>
+    <linearGradient id="arrowG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe45c"/>
+      <stop offset="1" stop-color="#e0a400"/>
+    </linearGradient>
+    <radialGradient id="pbBody" cx="40%" cy="22%" r="85%">
+      <stop offset="0" stop-color="#f1f5f9"/>
+      <stop offset=".22" stop-color="#b9c3cd"/>
+      <stop offset=".55" stop-color="#6c7887"/>
+      <stop offset=".85" stop-color="#323a44"/>
+      <stop offset="1" stop-color="#1a1f25"/>
+    </radialGradient>
+    <linearGradient id="pbLeg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a434d"/><stop offset=".45" stop-color="#8e9aa6"/><stop offset="1" stop-color="#2a3139"/>
+    </linearGradient>
+    <linearGradient id="pbRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff4b0"/><stop offset=".35" stop-color="#ffd21a"/><stop offset=".7" stop-color="#c88f00"/><stop offset="1" stop-color="#7a5200"/>
+    </linearGradient>
+    <linearGradient id="pbBand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff4a4f"/><stop offset=".55" stop-color="#c3141c"/><stop offset="1" stop-color="#7d0a10"/>
+    </linearGradient>
+    <linearGradient id="pbGlass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2633"/><stop offset="1" stop-color="#05080c"/>
+    </linearGradient>
+    <linearGradient id="pbCoins" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff3a6"/><stop offset=".18" stop-color="#ffd21a"/><stop offset=".6" stop-color="#e2a800"/><stop offset="1" stop-color="#8a5c00"/>
+    </linearGradient>
+    <pattern id="pbCoinRows" width="9" height="4.2" patternUnits="userSpaceOnUse">
+      <ellipse cx="4.5" cy="2.1" rx="4.1" ry="1.55" fill="none" stroke="#8a5c00" stroke-width=".7" stroke-opacity=".75"/>
+      <path d="M1.4 1.5 Q4.5 .6 7.6 1.5" stroke="#fff6c0" stroke-width=".55" fill="none" stroke-opacity=".7"/>
+    </pattern>
+    <symbol id="xmark" viewBox="0 0 10 10">
+      <path d="M1.5 1.5 L8.5 8.5 M8.5 1.5 L1.5 8.5" stroke="#fff" stroke-width="2" stroke-linecap="square"/>
+    </symbol>
+    <symbol id="arrowL" viewBox="0 0 40 40">
+      <path d="M4 20 L19 6 L19 14 L36 14 L36 26 L19 26 L19 34 Z" fill="url(#arrowG)" stroke="#6b4a00" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M9 20 L18 11.5" stroke="#fff6c0" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <div class="caption"><h1>Critical Strike <span>Piggy Bank</span></h1><p>Clickable prototype on real game screens. Follow the yellow notes, or jump to a step below.</p></div>
+  <p class="rotate">Turn your phone sideways for a bigger view.</p>
+  <div class="turn" id="turn"><div class="ph"></div><h3>Turn your phone</h3><p>Critical Strike plays sideways. Rotate your phone to try the Piggy Bank like the real game.</p><small id="turnHint" hidden>Rotation lock on? Tap the screen once, then turn your phone.</small></div>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="welcome" id="welcome">
+        <img class="bg" src="assets/demo-bg-home.webp" alt="">
+        <div class="pop brk">
+          <div class="ribbon">PROTOTYPE</div>
+          <div class="hd"><h2>Piggy Bank</h2></div>
+          <p class="lead">A new offer for Critical Strike: <b>finished matches fill a bank with gold, even losses.</b> Break it from 250 gold.</p>
+          <svg class="pig wpig is-full" style="--f:.55"><use href="#pig"/></svg>
+          <div class="wsteps"><span><b>1</b>Intro</span><span><b>2</b>Home</span><span><b>3</b>After a match</span><span><b>4</b>Bank</span><span><b>5</b>Full</span><span><b>6</b>Break</span></div>
+          <button class="btn-g shine" id="startBtn" type="button">Start</button>
+          <p class="meta">About one minute. Follow the yellow notes. Sound on.</p>
+        </div>
+      </div>
+      <div class="guide" id="guide"><div class="gx" id="guideTx"></div></div>
+      <div class="tap" id="tap"><span class="ring"></span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 c2.4 0 4 1.7 4 4 v10 l2-.4 c2-.4 3.6.8 4 2.6 l.3 1.4 1.6-.3 c2-.3 3.6 1 3.9 2.8 l.2 1.2 1.2-.1 c2-.1 3.4 1.4 3.4 3.4 v4.4 c0 3.6-2.6 6.4-6 6.4 h-9 c-2.2 0-4.2-1.1-5.4-2.9 L7.4 27 c-1-1.6-.6-3.6.9-4.6 1.4-.9 3.2-.6 4.2.7 L10 20 V8 c0-2.3 1.6-4 4-4z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+
+      <!-- 1 Intro: shown once, on Home, after the level 5, on Home, never right after a loss -->
+      <section class="scene" data-step="1">
+        <img class="bg" src="assets/demo-bg-home.webp" alt="Critical Strike home screen">
+        <div class="dim"></div>
+        <div class="popwrap">
+          <div class="pop brk" style="width:52%">
+            <div class="ribbon">NEW</div>
+            <div class="hd"><h2>Piggy Bank</h2><button class="xbtn" data-go="2" data-coach="1" title="Close"><svg><use href="#xmark"/></svg></button></div>
+            <p class="lead">Complete matches to fill your bank. <b>Even losses bring you closer.</b></p>
+            <div class="midrow" style="margin-top:.8cqw">
+              <div class="pigmeter" style="width:15cqw" id="introMeter">
+                <span class="halo"></span>
+                <img class="drop" id="introDrop" src="assets/demo-coin.svg" alt="">
+                <span class="plink" id="introPlink">+30</span>
+                <svg class="pig" id="introPig"><use href="#pig"/></svg>
+                <div class="bar"><i id="introFill" style="width:0"></i><span class="mark" style="left:41.7%"></span></div>
+                <div class="num"><span id="introNum">0</span> / 600</div>
+              </div>
+            </div>
+            <div class="tiles" style="margin-top:1cqw;gap:.8cqw">
+              <div class="tile brk sm rule" style="animation-delay:.4s"><div class="k">Kill</div><div class="v"><img class="ci" src="assets/demo-coin.svg" alt="">+2</div></div>
+              <div class="tile brk sm rule" style="animation-delay:.47s"><div class="k">Headshot</div><div class="v"><img class="ci" src="assets/demo-coin.svg" alt="">+1</div></div>
+              <div class="tile brk sm rule" style="animation-delay:.54s"><div class="k">Win</div><div class="v"><img class="ci" src="assets/demo-coin.svg" alt="">+30</div></div>
+              <div class="tile brk sm rule" style="animation-delay:.61s"><div class="k">Loss</div><div class="v"><img class="ci" src="assets/demo-coin.svg" alt="">+15</div></div>
+              <div class="tile brk sm rule" style="animation-delay:.68s"><div class="k">MVP</div><div class="v"><img class="ci" src="assets/demo-coin.svg" alt="">+10</div></div>
+              <div class="tile brk sm rule" style="animation-delay:.75s"><div class="k">Objective</div><div class="v"><img class="ci" src="assets/demo-coin.svg" alt="">+5</div></div>
+            </div>
+            <p class="note y">You can break it from 250 gold. No timer: your gold never expires.</p>
+            <button class="btn-g shine" style="margin-top:.9cqw;padding:0 4cqw" data-go="2" data-coach="1">Got it</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 Home -->
+      <section class="scene" data-step="2">
+        <img class="bg" src="assets/demo-bg-home.webp" alt="Critical Strike home screen">
+        <div class="htile brk sm" id="homeTile" data-go="4" tabindex="0" role="button" title="Open Piggy Bank">
+          <span class="bang">!</span>
+          <svg class="pig" id="homePig"><use href="#pig"/></svg>
+          <div class="lbl">PIGGY BANK</div>
+          <div class="bar"><i id="homeFill" style="width:0"></i></div>
+          <div class="num" id="homeNum">240 / 600</div>
+          <div class="price" id="homePrice">TRY 99.99</div>
+        </div>
+        <div class="coach" id="coach"><svg><use href="#arrowL"/></svg><span>Your Piggy Bank lives here.<br>Tap it any time to check your gold.</span></div>
+        <div class="gcount" id="gHome"><img src="assets/demo-coin.svg" alt="Gold"><span id="gHomeNum">176</span><b>+</b></div>
+        <div class="hit" data-go="3" tabindex="0" role="button" title="Battle" style="left:78.6%;top:88.6%;width:12.9%;height:8.8%"></div>
+        <div class="endcard brk sm" id="endcard"><span class="ok">&#10003;</span><span>Loop complete. <b>The next bank fills the same way.</b></span><button class="btn-b" id="replay" type="button">Replay</button></div>
+      </section>
+
+      <!-- 3 After a match: the game's own rewards screen (Victory x1, Kill x17, Headshot x13) -->
+      <section class="scene" data-step="3">
+        <img class="bg" src="assets/demo-bg-rewards.webp" alt="Critical Strike match rewards screen">
+        <div class="rcard" id="rcard">
+          <div class="head">PIGGY BANK</div>
+          <svg class="pig" id="rcPig"><use href="#pig"/></svg>
+          <div class="amt" id="rcAmt"><img class="ci" src="assets/demo-coin.svg" alt=""><span id="rcPlus">+77</span></div>
+          <div class="bar"><i id="rcFill" style="width:0"></i></div>
+          <div class="sub"><span id="rcNum">240</span> / <span id="rcCap">600</span></div>
+          <div class="fullnote">Full. Break it to keep earning.</div>
+        </div>
+        <div class="plusl" id="plV" style="left:50%;top:29.5%"><img class="ci" src="assets/demo-coin.svg" alt="">+30</div>
+        <div class="plusl" id="plK" style="left:59%;top:29.5%"><img class="ci" src="assets/demo-coin.svg" alt="">+34</div>
+        <div class="plusl" id="plH" style="left:68%;top:29.5%"><img class="ci" src="assets/demo-coin.svg" alt="">+13</div>
+        <div class="hit" data-go="2" tabindex="0" role="button" data-after="1" title="Continue" style="left:81.1%;top:88%;width:14.7%;height:9%"></div>
+      </section>
+
+      <!-- 4 Bank (any amount, or the full offer at 600) -->
+      <section class="scene" data-step="4">
+        <img class="bg" src="assets/demo-bg-home.webp" alt="Critical Strike home screen">
+        <div class="gcount" id="gBank"><img src="assets/demo-coin.svg" alt="Gold"><span id="gBankNum">176</span><b>+</b></div>
+        <div class="dim"></div>
+        <div class="popwrap">
+          <div class="pop brk" id="bankPop" style="width:54%">
+            <div class="ribbon" id="valRibbon">2.7X VALUE</div>
+            <div class="hd"><h2>Piggy Bank</h2><button class="xbtn" data-go="2" data-close="1" title="Close"><svg><use href="#xmark"/></svg></button></div>
+            <p class="lead" id="bankLead">Finished matches add gold. <b>Break it when you like.</b></p>
+            <div class="midrow">
+              <div class="pigmeter">
+                <span class="rays"></span><span class="halo"></span>
+                <svg class="pig" id="bankPig"><use href="#pig"/></svg>
+                <div class="bar"><i id="bankFill" style="width:0"></i><span class="mark" id="bankMark" style="left:41.7%"></span></div>
+                <div class="num"><span id="bankNum">317</span> / <span id="bankCap">600</span> gold</div>
+              </div>
+              <div class="tiles">
+                <div class="tile brk sm" style="width:7.4cqw;height:7.6cqw;animation-delay:.25s"><img class="art" src="assets/demo-art-gold-pile.png" alt="Gold"><div class="q"><img class="ci" src="assets/demo-coin.svg" alt=""> <span id="bankGet">317</span></div></div>
+                <div class="tile brk sm" id="adsTile" style="width:7.4cqw;height:7.6cqw;animation-delay:.32s"><img class="art" src="assets/demo-noads.svg" alt="No forced ads" style="width:56%;margin-top:-1.2cqw"><div class="q" style="font-size:.88cqw;line-height:1.15;bottom:.4cqw">No forced ads<br><span style="color:#ecd27a">existing: any purchase</span></div></div>
+              </div>
+            </div>
+            <div class="info">
+              <button class="chip" id="rulesChip" type="button">Rules</button>
+              <span class="txt" id="infoTxt"></span>
+            </div>
+            <div class="buyrow">
+              <div class="was"><small>Shop</small><s>TRY 270</s></div>
+              <button class="btn-g shine" id="breakBtn" data-go="6"><span id="breakLbl">Break</span> <span class="sep"></span> <span id="breakPrice">TRY 99.99</span></button>
+            </div>
+            <p class="note" id="bankNote"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5 Full -->
+      <section class="scene" data-step="5">
+        <img class="bg" src="assets/demo-bg-home.webp" alt="Critical Strike home screen">
+        <div class="htile brk sm full" data-go="4" tabindex="0" role="button" data-full="1" title="Open Piggy Bank">
+          <span class="tag">2.7X</span>
+          <span class="bang">!</span>
+          <span class="sweep"></span><span class="rise"><i></i><i></i><i></i><i></i><i></i></span>
+          <svg class="pig is-full" style="--f:1"><use href="#pig"/></svg>
+          <div class="lbl">PIGGY BANK</div>
+          <div class="bar"><i style="width:calc(100% - .24cqw)"></i></div>
+          <div class="num">FULL</div>
+        </div>
+        <div class="toast brk sm" data-go="4" tabindex="0" role="button" data-full="1">
+          <svg class="pig is-full" style="--f:1"><use href="#pig"/></svg>
+          <span>Piggy Bank full. <b>Break it to keep earning.</b></span>
+        </div>
+        <div class="hit" data-go="3" tabindex="0" role="button" data-full="1" title="Battle" style="left:78.6%;top:88.6%;width:12.9%;height:8.8%"></div>
+      </section>
+
+      <!-- 6 Break: the game's "YOU GOT" reward screen -->
+      <section class="scene" data-step="6">
+        <div class="shk">
+          <div class="ygbg"></div>
+          <div class="ygtitle">YOU GOT:</div>
+          <div class="ycards">
+            <div class="ycard goldc" id="goldCard">
+              <div class="t">Gold</div>
+              <div class="s g">Piggy Bank</div>
+              <div class="a"><img class="art" id="pile" src="assets/demo-art-gold-pile.png" alt="Gold"></div>
+              <div class="q"><img class="ci" src="assets/demo-coin.svg" alt="">x<span id="breakAmt">600</span></div>
+              <span class="shinebox"></span>
+              <i class="spark" style="left:22%;top:34%;animation-delay:1.7s"></i>
+              <i class="spark" style="left:70%;top:42%;animation-delay:2.2s"></i>
+              <i class="spark" style="left:48%;top:58%;animation-delay:2.6s"></i>
+            </div>
+            <div class="ycard">
+              <div class="t">No forced ads</div>
+              <div class="s">Existing benefit: any purchase</div>
+              <div class="a"><img class="art" src="assets/demo-noads.svg" alt="No forced ads" style="width:46%"></div>
+              <div class="q" style="color:#3fd84a">ACTIVATED</div>
+            </div>
+            <div class="ycard">
+              <div class="t">Next bank</div>
+              <div class="s g">TRY 149.99</div>
+              <div class="a"><svg class="pig" style="width:58%;--f:0"><use href="#pig"/></svg></div>
+              <div class="bar"><i style="width:0"></i><span class="mark" style="left:25%"></span></div>
+              <div class="q"><img class="ci" src="assets/demo-coin.svg" alt="">0 / 1,000</div>
+            </div>
+          </div>
+          <div class="yreceipt">
+            <div class="l1"><span class="ok">&#10003;</span>Demo purchase completed. No real charge.</div>
+            <div class="l2"><span id="rcptGold">600</span> gold credited in this simulation. Demo receipt generated.</div>
+          </div>
+          <div class="stage6" id="stage">
+            <span class="rays"></span>
+            <div class="flash"></div>
+            <svg class="pig whole is-full" style="--f:1"><use href="#pig"/></svg>
+            <svg class="hammer" viewBox="0 0 60 60" aria-hidden="true">
+              <rect x="31" y="20" width="6" height="38" rx="2" transform="rotate(35 34 39)" fill="#7a4a22" stroke="#2b1708" stroke-width="1.2"/>
+              <rect x="31" y="20" width="2" height="36" rx="1" transform="rotate(35 34 39)" fill="#b77a3c"/>
+              <g transform="rotate(35 24 16)"><rect x="6" y="8" width="36" height="16" rx="2.5" fill="url(#pbLeg)" stroke="#0e1114" stroke-width="1.4"/>
+              <rect x="20" y="8" width="7" height="16" fill="url(#pbRim)" stroke="#6b4a00" stroke-width=".8"/>
+              <path d="M8 11 h32" stroke="#fff" stroke-opacity=".5" stroke-width="1.2"/></g>
+            </svg>
+          </div>
+          <div class="gcount on" id="gcount"><img src="assets/demo-coin.svg" alt="Gold"><span id="gNum">176</span><b>+</b></div>
+          <button class="btn-b ycont" id="ycont" data-go="2" data-broke="1">Continue</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="steps" id="steps">
+    <button data-step="1"><b>1</b>Intro</button>
+    <button data-step="2"><b>2</b>Home</button>
+    <button data-step="3"><b>3</b>After a match</button>
+    <button data-step="4"><b>4</b>Bank</button>
+    <button data-step="5"><b>5</b>Full</button>
+    <button data-step="6"><b>6</b>Break</button>
+  </div>
+  <div class="nav">
+    <button id="back">Back</button>
+    <button id="next" class="next">Next</button>
+    <button class="snd" id="snd" type="button" title="Sound on or off"></button>
+  </div>
+  <button class="mtab" id="mtab" type="button" title="Steps">&#9776;</button>
+  <div class="mmenu" id="mmenu"><div class="box"><b>PIGGY BANK DEMO</b>
+    <button data-m="1">1 Intro</button><button data-m="2">2 Home</button><button data-m="3">3 After a match</button>
+    <button data-m="4">4 Bank</button><button data-m="5">5 Full</button><button data-m="6">6 Break</button>
+    <button data-m="snd" class="wide" id="msnd">Sound: on</button>
+    <button data-m="fs" class="wide" id="mfs">Full screen</button>
+    <button data-m="x" class="wide">Back to the game</button></div></div>
+
+  <div class="footer">Edanur Şahin · Vertigo Games Product Case · October 2026</div>
+</div>
+
+<script>
+(function () {
+  var COIN = 'assets/demo-coin.svg';
+  var PRICE1 = 'TRY 99.99', PRICE2 = 'TRY 149.99';
+  var GOLD0 = 176;                       // gold shown on the Home screenshot
+  var MATCH = { win: 30, kills: 17, hs: 13 };   // the rewards screenshot: Victory x1, Kill x17, Headshot x13
+  var EARN = MATCH.win + MATCH.kills * 2 + MATCH.hs * 1;   // 30 + 34 + 13 = 77
+  var AFTER = 317, START = AFTER - EARN; // 240 on Home before the match, 317 after it
+  var MIN = 250;                         // first bank: break from 250 gold (TRY 0.40 per gold, the shop's best rate)
+  function minFor() { return state.cap === 1000 ? 375 : MIN; }  // second bank: 149.99 / 0.40 = 375
+  var root = document.documentElement;
+  if (/[?&]hero\b/.test(location.search)) root.classList.add('hero', 'still');
+  if (/[?&]still\b/.test(location.search)) root.classList.add('still');
+  function noMotion() {
+    return root.classList.contains('still') ||
+      (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+  function $(id) { return document.getElementById(id); }
+
+  // state.cap and state.price change after the first break (next bank: 1,000 gold for TRY 149.99)
+  var state;
+  function fresh(step) {
+    return { step: step, full: false, home: START, bank: AFTER, brk: 600, cap: 600, price: PRICE1, gold: GOLD0, broke: false, coach: false };
+  }
+
+  var scenes = document.querySelectorAll('.scene');
+  var stepBtns = document.querySelectorAll('#steps button');
+  var screen = $('screen');
+  var timeouts = [];
+  function later(fn, ms) { timeouts.push(setTimeout(fn, ms)); }
+  function clearAll() { timeouts.forEach(clearTimeout); timeouts = []; }
+  function pct(g, cap) { return 'calc(' + Math.min(100, g / cap * 100).toFixed(1) + '% - .24cqw)'; }
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  // Count a number up with an ease-out curve
+  function tick(el, from, to, delay, dur, done) {
+    if (noMotion()) { el.textContent = to; if (done) done(); return; }
+    el.textContent = from;
+    later(function () {
+      var t0 = performance.now();
+      (function step(now) {
+        var k = Math.min(1, (now - t0) / dur);
+        el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) timeouts.push(setTimeout(function () { step(performance.now()); }, 30)); else if (done) done();
+      })(t0);
+    }, delay);
+  }
+
+  // Layout position of an element inside the screen, in cqw, ignoring transforms (so it is
+  // correct even while the popup is still scaling in)
+  function posIn(el) {
+    var x = 0, y = 0, n = el;
+    while (n && n !== screen) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+    var u = screen.clientWidth / 100;
+    return { x: (x + el.offsetWidth / 2) / u, y: (y + el.offsetHeight / 2) / u };
+  }
+
+  // Flying coins: one pool, reused, so revisits never leave stray coins behind
+  var flyPool = [];
+  function clearFlies() { flyPool.forEach(function (f) { f.classList.remove('go'); f.style.opacity = 0; }); }
+  function fly(scene, x0, y0, x1, y1, delay, dur) {
+    var f = flyPool.filter(function (p) { return !p.classList.contains('go'); })[0];
+    if (!f) { f = document.createElement('div'); f.className = 'fly'; f.innerHTML = '<img src="' + COIN + '" alt="">'; flyPool.push(f); }
+    if (f.parentNode !== scene) scene.appendChild(f);
+    f.style.opacity = '';
+    f.style.left = x0 + 'cqw'; f.style.top = y0 + 'cqw';
+    f.style.setProperty('--dx', (x1 - x0).toFixed(2) + 'cqw');
+    f.style.setProperty('--dy', (y1 - y0).toFixed(2) + 'cqw');
+    f.style.setProperty('--h', rnd(3, 6.5).toFixed(2) + 'cqw');
+    f.style.setProperty('--d', delay.toFixed(3) + 's');
+    f.style.setProperty('--t', dur.toFixed(3) + 's');
+    void f.offsetWidth; f.classList.add('go');
+  }
+
+  // Coins that burst out of the broken bank (random spread each time)
+  var stage = $('stage'), bursts = [];
+  for (var i = 0; i < 16; i++) {
+    var c = document.createElement('img');
+    c.className = 'art bc'; c.src = COIN; c.alt = '';
+    stage.appendChild(c); bursts.push(c);
+  }
+  function scatter() {
+    bursts.forEach(function (c, k) {
+      var a = (k / bursts.length) * Math.PI * 2 + rnd(-.18, .18), r = rnd(8, 15);
+      c.style.setProperty('--bx', (Math.cos(a) * r * 1.4).toFixed(2) + 'cqw');
+      c.style.setProperty('--by', (Math.sin(a) * r * .8 + rnd(0, 2)).toFixed(2) + 'cqw');
+      c.style.setProperty('--br', Math.round(rnd(-320, 320)) + 'deg');
+      c.style.setProperty('--bd', (0.8 + rnd(0, .08)).toFixed(3) + 's');
+      c.style.setProperty('--bt', rnd(.6, .78).toFixed(3) + 's');
+    });
+  }
+
+
+  // The pig, drawn per instance so each bank shows its own gold level through the porthole (--f, 0 to 1)
+  function PIG(u) {
+    return '' +
+      '<defs><clipPath id="pbw' + u + '"><circle cx="49" cy="52" r="14.6"/></clipPath></defs>' +
+      '<ellipse cx="58" cy="87" rx="42" ry="4.4" fill="#000" opacity=".45"/>' +
+      '<rect x="36" y="64" width="11" height="17" rx="2" fill="#262c33"/><rect x="80" y="62" width="11" height="18" rx="2" fill="#262c33"/>' +
+      '<path d="M15 45 c-9 -2 -9 -12 -3 -12 c5 0 5 7 -1 6" stroke="#6c7887" stroke-width="2.8" fill="none" stroke-linecap="round"/>' +
+      '<rect x="25" y="65" width="13" height="18" rx="2.2" fill="url(#pbLeg)" stroke="#0b0e11" stroke-width="1"/>' +
+      '<rect x="69" y="65" width="13" height="18" rx="2.2" fill="url(#pbLeg)" stroke="#0b0e11" stroke-width="1"/>' +
+      '<rect x="24" y="79" width="15" height="5.2" rx="1.6" fill="url(#pbRim)" stroke="#6b4a00" stroke-width=".7"/>' +
+      '<rect x="68" y="79" width="15" height="5.2" rx="1.6" fill="url(#pbRim)" stroke="#6b4a00" stroke-width=".7"/>' +
+      '<ellipse cx="56" cy="48" rx="44" ry="31" fill="url(#pbBody)" stroke="#0b0e11" stroke-width="1.7"/>' +
+      '<path d="M16 58 Q56 86 96 58 Q90 76 56 79 Q24 77 16 58 Z" fill="#000" opacity=".22"/>' +
+      '<path d="M22 31 Q44 14 70 19" stroke="#fff" stroke-opacity=".55" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+      '<path d="M81 22 Q90 40 84 76" stroke="url(#pbRim)" stroke-width="3.2" fill="none"/>' +
+      '<g fill="#e8edf2" stroke="#1d2227" stroke-width=".5"><circle cx="83.6" cy="30" r="1.1"/><circle cx="86.6" cy="44" r="1.1"/><circle cx="86.4" cy="58" r="1.1"/><circle cx="84.6" cy="70" r="1.1"/></g>' +
+      // gold slot, glow and the coins that peek out when the bank is full
+      '<ellipse class="pb-slotglow" cx="49" cy="18.6" rx="15" ry="5" fill="#ffd21a" opacity="0" style="filter:blur(2.2px)"/>' +
+      '<g class="pb-over"><ellipse cx="44" cy="15.6" rx="4.4" ry="1.7" fill="url(#pbCoins)" stroke="#7a5200" stroke-width=".6" transform="rotate(-14 44 15.6)"/>' +
+      '<rect x="47.6" y="9.4" width="3.4" height="9" rx="1.2" fill="url(#pbCoins)" stroke="#7a5200" stroke-width=".6"/>' +
+      '<ellipse cx="54.6" cy="15.4" rx="4.4" ry="1.7" fill="url(#pbCoins)" stroke="#7a5200" stroke-width=".6" transform="rotate(12 54.6 15.4)"/></g>' +
+      '<rect x="37" y="16.4" width="24" height="5" rx="2.5" fill="#05070a" stroke="url(#pbRim)" stroke-width="1.5"/>' +
+      // porthole with the gold level
+      '<circle cx="49" cy="52" r="17.4" fill="#0d1116" stroke="url(#pbRim)" stroke-width="3.4"/>' +
+      '<circle cx="49" cy="52" r="14.6" fill="url(#pbGlass)"/>' +
+      '<g clip-path="url(#pbw' + u + ')"><g class="pb-coins">' +
+        '<rect x="33" y="36.4" width="32" height="34" fill="url(#pbCoins)"/>' +
+        '<rect x="33" y="36.4" width="32" height="34" fill="url(#pbCoinRows)"/>' +
+        '<path d="M33 37.2 Q49 34.2 65 37.2" stroke="#fff7c8" stroke-width="1.3" fill="none"/>' +
+      '</g></g>' +
+      '<path d="M38.5 44 A12.5 12.5 0 0 1 49 38.6" stroke="#fff" stroke-opacity=".6" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+      '<circle cx="57.6" cy="45" r="1.3" fill="#fff" opacity=".55"/>' +
+      '<g fill="#fff1a8" stroke="#6b4a00" stroke-width=".4"><circle cx="49" cy="33.2" r="1"/><circle cx="67.8" cy="52" r="1"/><circle cx="49" cy="70.8" r="1"/><circle cx="30.2" cy="52" r="1"/></g>' +
+      // head: ear, red band, eye, snout
+      '<path d="M75 26 Q76 10 85 4 Q93 13 94 28 Z" fill="url(#pbBody)" stroke="#0b0e11" stroke-width="1.3"/>' +
+      '<path d="M79.5 24.5 Q80.5 14 85 10 Q89.5 16 90 25.5 Z" fill="#c9737a" opacity=".8"/>' +
+      '<path d="M73 31 Q86 25 99 33 L98 38 Q86 31 74 36.6 Z" fill="url(#pbBand)" stroke="#4a0509" stroke-width=".8"/>' +
+      '<path d="M74 34 L66 30.5 L67 36 Z M74.4 34.6 L67.6 39.6 L72.6 40.6 Z" fill="url(#pbBand)" stroke="#4a0509" stroke-width=".6"/>' +
+      '<g class="pb-eye"><ellipse cx="88" cy="43.4" rx="4.2" ry="4.6" fill="#f4f6f8" stroke="#0b0e11" stroke-width="1"/>' +
+      '<circle cx="89.3" cy="44.2" r="2.3" fill="#0b0e11"/><circle cx="90" cy="43.3" r=".85" fill="#fff"/></g>' +
+      '<path d="M82.6 39.6 L93.2 41.6" stroke="#0b0e11" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<ellipse cx="102" cy="55" rx="10.6" ry="9.8" fill="url(#pbBody)" stroke="url(#pbRim)" stroke-width="2.4"/>' +
+      '<ellipse cx="99" cy="55" rx="1.8" ry="2.7" fill="#0b0e11"/><ellipse cx="105.2" cy="55" rx="1.8" ry="2.7" fill="#0b0e11"/>' +
+      '<path d="M92 66 Q97 68.6 102 66.4" stroke="#0b0e11" stroke-width="1.4" fill="none" stroke-linecap="round"/>' +
+      // cracks, drawn only when the bank is broken
+      '<g class="pb-crack" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path class="c1" d="M60 19 L56 28 L62 33 L57 41" stroke="#05070a" stroke-width="2"/>' +
+        '<path class="c2" d="M66 52 L74 56 L71 63 L79 69 M24 40 L31 45 L27 52" stroke="#05070a" stroke-width="2"/>' +
+        '<path class="c3" d="M57 41 L65 47 L60 58 L66 66 L61 78 M18 60 L28 58 L32 66" stroke="#05070a" stroke-width="2.2"/>' +
+      '</g>';
+  }
+  var pigN = 0;
+  function buildPig(svg) {
+    svg.setAttribute('viewBox', '0 0 120 92');
+    svg.innerHTML = PIG(++pigN);
+  }
+  document.querySelectorAll('svg.pig').forEach(buildPig);
+
+  // Break: the full pig splits into six shards, using the same art
+  var SHARDS = [
+    ['polygon(0 0,50% 0,46% 30%,30% 46%,0 40%)', -9, -6, -40],
+    ['polygon(50% 0,100% 0,100% 38%,62% 44%,46% 30%)', 9, -7, 38],
+    ['polygon(0 40%,30% 46%,40% 70%,24% 100%,0 100%)', -11, 4, -60],
+    ['polygon(30% 46%,46% 30%,62% 44%,58% 68%,40% 70%)', -1, -9, 120],
+    ['polygon(62% 44%,100% 38%,100% 100%,70% 100%,58% 68%)', 11, 5, 55],
+    ['polygon(40% 70%,58% 68%,70% 100%,24% 100%)', 2, 8, -25]
+  ];
+  var stageEl = $('stage');
+  SHARDS.forEach(function (d) {
+    var sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    sv.setAttribute('class', 'pig shard is-full'); sv.style.setProperty('--f', 1);
+    sv.style.clipPath = d[0];
+    sv.style.setProperty('--sx', d[1] + 'cqw'); sv.style.setProperty('--sy', d[2] + 'cqw'); sv.style.setProperty('--sr', d[3] + 'deg');
+    buildPig(sv);
+    sv.querySelectorAll('.pb-crack path').forEach(function (p) { p.style.opacity = 1; p.style.strokeDashoffset = 0; });
+    stageEl.appendChild(sv);
+  });
+
+  // Coin fountain with gravity (break) and a tiny frame loop that stops on every scene change
+  var frames = [];
+  function stopFrames() { frames.forEach(cancelAnimationFrame); frames = []; }
+  var fountain = [];
+  for (var fi = 0; fi < 26; fi++) {
+    var fc = document.createElement('img'); fc.className = 'art fc'; fc.src = COIN; fc.alt = '';
+    stageEl.appendChild(fc); fountain.push(fc);
+  }
+  function fountainGo() {
+    var u = screen.clientWidth / 100, t0 = performance.now();
+    var parts = fountain.map(function () {
+      var a = rnd(-Math.PI * .92, -Math.PI * .08), v = rnd(28, 52);
+      return { vx: Math.cos(a) * v, vy: Math.sin(a) * v - rnd(4, 12), r: rnd(-540, 540), life: rnd(1.0, 1.5) };
+    });
+    (function step(now) {
+      var t = (now - t0) / 1000, alive = false;
+      fountain.forEach(function (c, k) {
+        var p = parts[k];
+        if (t > p.life) { c.style.opacity = 0; return; }
+        alive = true;
+        var x = p.vx * t, y = p.vy * t + 0.5 * 70 * t * t;
+        c.style.opacity = t > p.life - .25 ? Math.max(0, (p.life - t) / .25) : 1;
+        c.style.transform = 'translate(' + (x * u).toFixed(1) + 'px,' + (y * u).toFixed(1) + 'px) rotate(' + (p.r * t).toFixed(0) + 'deg) scale(' + (1 - t * .25).toFixed(2) + ')';
+      });
+      if (alive) frames.push(requestAnimationFrame(step));
+    })(t0);
+  }
+  function fountainReset() { fountain.forEach(function (c) { c.style.opacity = 0; c.style.transform = ''; }); }
+
+  // Set a pig's gold level; animate from empty when motion is allowed
+  function setFill(svg, f, from) {
+    var c = svg.querySelector('.pb-coins');
+    if (noMotion() || from === undefined) { c.style.transition = 'none'; svg.style.setProperty('--f', f); void c.getBoundingClientRect(); c.style.transition = ''; return; }
+    c.style.transition = 'none'; svg.style.setProperty('--f', from); void c.getBoundingClientRect(); c.style.transition = '';
+    later(function () { svg.style.setProperty('--f', f); }, 60);
+  }
+  function bumpPig(svg) { svg.classList.remove('bmp'); void svg.getBoundingClientRect(); svg.classList.add('bmp'); }
+
+  // Intro: show that every match drops gold in, a few times, then stop at 240 gold (the Home amount)
+  function renderIntro() {
+    var pig = $('introPig'), n = 0, gold = 0;
+    var adds = [30, 15, 30, 30, 15, 30, 30, 60];   // wins, losses and an MVP win: 240 in eight matches
+    setFill(pig, 0); $('introNum').textContent = 0; $('introFill').classList.remove('grow'); $('introFill').style.width = pct(0, 600);
+    if (noMotion()) return;
+    $('introFill').classList.add('grow');
+    function one() {
+      if (n >= adds.length) return;
+      var d = $('introDrop'), p = $('introPlink'), add = adds[n++];
+      d.classList.remove('go'); void d.offsetWidth; d.classList.add('go');
+      later(function () {
+        gold += add; bumpPig(pig); setFill(pig, gold / 600); sfx('coin');
+        $('introNum').textContent = gold; $('introFill').style.width = pct(gold, 600);
+        p.textContent = '+' + add; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go');
+      }, 560);
+      later(one, 1250);
+    }
+    later(one, 900);
+  }
+
+  function renderHome() {
+    var t = $('homeTile');
+    $('homeNum').textContent = state.home + ' / ' + fmt(state.cap);
+    var pr = $('homePrice'); pr.textContent = state.price; pr.style.display = '';   // price shown from day one (players complain about hidden prices)
+    $('homeTile').classList.add('priced');
+    $('homeFill').style.width = pct(state.home, state.cap);
+    t.classList.toggle('ready', !state.broke && state.home >= minFor());
+    setFill($('homePig'), Math.min(1, state.home / state.cap));
+    t.classList.toggle('pulse', state.coach);
+    $('coach').classList.toggle('on', state.coach);
+    $('gHome').classList.toggle('on', state.broke);
+    $('gHomeNum').textContent = state.gold;
+    $('endcard').classList.toggle('on', state.broke);
+  }
+
+  function renderBank() {
+    var full = state.bank >= state.cap;
+    var min = minFor();
+    var canBreak = state.bank >= min;
+    $('bankPop').classList.toggle('full-on', full);
+    $('adsTile').style.display = state.broke ? 'none' : '';
+    $('gBank').classList.toggle('on', state.broke); $('gBankNum').textContent = state.gold;
+    $('bankNum').textContent = state.bank;
+    $('bankCap').textContent = fmt(state.cap);
+    $('bankMark').style.left = (min / state.cap * 100).toFixed(1) + '%';
+    $('bankGet').textContent = state.bank;
+    $('bankFill').style.width = pct(state.bank, state.cap);
+    $('bankPig').classList.toggle('is-full', full);
+    setFill($('bankPig'), Math.min(1, state.bank / state.cap), 0);
+    $('valRibbon').style.display = full ? '' : 'none';
+    $('breakPrice').textContent = state.price;
+    $('breakLbl').textContent = 'Break';
+    var b = $('breakBtn');
+    b.classList.toggle('locked', !canBreak);
+    b.disabled = !canBreak;
+    if (!canBreak) { $('breakLbl').textContent = 'Break from ' + min + ' gold \u00b7 ' + state.price; }
+    var lead = $('bankLead'), note = $('bankNote');
+    if (full) {
+      lead.innerHTML = 'Your bank is <b>full</b>. Matches stop adding gold until you break it.';
+      note.innerHTML = 'Same gold in the shop: about TRY 270. When full, 600 gold is 2.7x the shop\'s gold value.';
+    } else if (!canBreak) {
+      lead.innerHTML = state.broke ? 'Your new bank holds <b>' + fmt(state.cap) + ' gold</b>.' : 'Finished matches add gold. <b>You can break it from ' + min + ' gold.</b>';
+      note.innerHTML = 'Play matches to fill it. You can break it from ' + min + ' gold.';
+    } else {
+      lead.innerHTML = 'Finished matches add gold. <b>Break it when you like.</b>';
+      note.innerHTML = 'Pay <b>' + state.price + '</b>, get <b class="gold">' + state.bank + ' gold</b> at once. Or let it fill to ' + fmt(state.cap) + '.';
+    }
+    setRules(false);
+  }
+  function setRules(on) {
+    $('rulesChip').classList.toggle('active', on);
+    $('infoTxt').innerHTML = on
+      ? '<span class="r">Kill +2 &nbsp; Headshot +1 &nbsp; Win +30 &nbsp; Loss +15 &nbsp; MVP +10 &nbsp; Plant, defuse, capture +5</span>'
+      : 'Normal gold for any upgrade. No timer, it never expires.';
+  }
+
+  function renderMatch(scene) {
+    var card = $('rcard'), rf = $('rcFill');
+    var from = state.home, full = state.full || from >= state.cap;
+    var to = full ? state.cap : Math.min(state.cap, from + EARN);
+    var plus = to - from;
+    card.classList.toggle('full', full);
+    var rp = $('rcPig'); rp.classList.toggle('is-full', full); setFill(rp, Math.min(1, from / state.cap));
+    card.classList.remove('hit1');
+    $('rcCap').textContent = fmt(state.cap);
+    $('rcPlus').textContent = full ? '+0' : '+' + plus;
+    ['plV', 'plK', 'plH'].forEach(function (id) { $(id).style.display = full ? 'none' : ''; });
+    rf.classList.remove('grow');
+    if (full) { rf.style.width = pct(state.cap, state.cap); $('rcNum').textContent = state.cap; state.afterMatch = state.cap; return; }
+    state.afterMatch = to;
+    rf.style.width = pct(from, state.cap); void rf.offsetWidth;
+    if (noMotion()) { rf.style.width = pct(to, state.cap); $('rcNum').textContent = to; setFill(rp, to / state.cap); return; }
+    $('rcNum').textContent = from;
+    sfx('victory');
+    // "+N" pops over Victory, Kill and Headshot, then coins arc into the bank card
+    var src = [[50, 'plV', .55, 2], [59, 'plK', .7, 3], [68, 'plH', .85, 2]];
+    var tgt = posIn(card), y0 = 41 * 0.4614, n = 0;
+    src.forEach(function (s) {
+      $(s[1]).style.animationDelay = s[2] + 's';
+      for (var k = 0; k < s[3]; k++) {
+        var dl = s[2] + .12 + k * .1 + rnd(0, .04), du = rnd(.55, .7);
+        fly(scene, s[0] + rnd(-1.2, 1.2), y0 + rnd(-.8, .8), tgt.x + rnd(-.3, .3), tgt.y - 2.4 + rnd(-.3, .3), dl, du);
+        later(function () { bumpPig(rp); sfx('coin'); }, (dl + du) * 1000 - 40);
+        n++;
+      }
+    });
+    later(function () { rf.classList.add('grow'); rf.style.width = pct(to, state.cap); card.classList.add('hit1'); setFill(rp, to / state.cap); }, 1050);
+    tick($('rcNum'), from, to, 1050, 900, function () {
+      var a = $('rcAmt'); a.classList.remove('pnum'); void a.offsetWidth; a.classList.add('pnum');
+    });
+  }
+
+  function renderBreak(scene) {
+    $('breakAmt').textContent = state.brk; $('rcptGold').textContent = state.brk;
+    var g = $('gcount'), cont = $('ycont');
+    g.classList.remove('hot', 'bump'); cont.classList.remove('ready');
+    cont.style.pointerEvents = '';
+    if (noMotion()) { $('gNum').textContent = GOLD0 + state.brk; cont.classList.add('ready'); return; }
+    cont.style.pointerEvents = 'none';
+    later(function () { cont.style.pointerEvents = ''; cont.classList.add('ready'); }, 1700);
+    scatter(); fountainReset();
+    [270, 510, 750].forEach(function (ms) { later(function () { sfx('hit'); buzz(25); }, ms); });
+    later(function () { fountainGo(); sfx('shatter'); buzz([40, 30, 70]); }, 820);
+    later(function () { sfx('chest'); }, 900);
+    later(function () { sfx('gold'); }, 1900);
+    $('breakAmt').textContent = 0;
+    tick($('breakAmt'), 0, state.brk, 1080, 650);
+    // coins from the gold card to the gold counter
+    var p = posIn($('pile')), q = posIn(g.querySelector('img'));
+    for (var k = 0; k < 9; k++) {
+      fly(scene, p.x + rnd(-2, 2), p.y + rnd(-1.2, 1.2), q.x, q.y, 1.45 + k * .06 + rnd(0, .03), rnd(.5, .62));
+    }
+    later(function () { g.classList.add('hot'); }, 1950);
+    tick($('gNum'), GOLD0, GOLD0 + state.brk, 1950, 520, function () {
+      g.classList.remove('bump'); void g.offsetWidth; g.classList.add('bump');
+      later(function () { g.classList.remove('hot'); }, 320);
+    });
+  }
+
+
+  // Sound: small synthesised effects (no files), started by the first tap, with an on/off switch
+  var AC = null, master = null, soundOn = true;
+  try { if (localStorage.getItem('pbSound') === '0') soundOn = false; } catch (e) {}
+  // Real Critical Strike sounds, cut from my own screen recording: button tap, victory sting,
+  // chest opening ("YOU GOT"), gold collect. Hammer hits and the crack stay synthesised.
+  var CLIPS = { tap: 'assets/sfx-tap.mp3', victory: 'assets/sfx-victory.mp3',
+                chest: 'assets/sfx-chest.mp3', gold: 'assets/sfx-gold.mp3' };
+  var buf = {};
+  function loadClips() {
+    Object.keys(CLIPS).forEach(function (k) {
+      try {
+        fetch(CLIPS[k]).then(function (r) { return r.arrayBuffer(); })
+          .then(function (ab) { return new Promise(function (ok, no) { AC.decodeAudioData(ab, ok, no); }); })
+          .then(function (b) { buf[k] = b; }).catch(function () {});
+      } catch (e) {}
+    });
+  }
+  function ac() {
+    if (!AC) {
+      var K = window.AudioContext || window.webkitAudioContext; if (!K) return null;
+      AC = new K(); master = AC.createGain(); master.gain.value = .5; master.connect(AC.destination); loadClips();
+    }
+    if (AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function clip(k, vol, at) {   // returns false if the clip is not ready, so callers can fall back
+    var a = ac(); if (!a || !buf[k]) return false;
+    var src = a.createBufferSource(), g = a.createGain();
+    src.buffer = buf[k]; g.gain.value = vol == null ? 1 : vol;
+    src.connect(g); g.connect(master); src.start(a.currentTime + (at || 0));
+    return true;
+  }
+  function tone(fq, at, dur, type, vol, fq2) {
+    var a = ac(); if (!a) return;
+    var o = a.createOscillator(), g = a.createGain(), t0 = a.currentTime + (at || 0);
+    o.type = type || 'sine'; o.frequency.setValueAtTime(fq, t0);
+    if (fq2) o.frequency.exponentialRampToValueAtTime(fq2, t0 + dur);
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol || .2, t0 + .008); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + .05);
+  }
+  function noise(at, dur, vol, hp) {
+    var a = ac(); if (!a) return;
+    var n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+    var src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(), t0 = a.currentTime + (at || 0);
+    src.buffer = b; fl.type = 'highpass'; fl.frequency.value = hp || 1000; g.gain.value = vol || .2;
+    src.connect(fl); fl.connect(g); g.connect(master); src.start(t0);
+  }
+  var SFX = {
+    whoosh: function () { noise(0, .22, .12, 2400); tone(320, 0, .2, 'sine', .06, 760); },
+    sparkle: function () { [1568, 2093, 2637].forEach(function (fq, i) { tone(fq, i * .07, .18, 'triangle', .05); }); },
+    tap: function () { if (!clip('tap', .45)) tone(520, 0, .06, 'square', .05, 680); },
+    victory: function () { clip('victory', .75); },
+    chest: function () { if (!clip('chest', .9)) SFX.fanfare(); },
+    gold: function () { if (!clip('gold', .8)) SFX.coin(); },
+    coin: function () { tone(1318, 0, .09, 'triangle', .12); tone(1976, .05, .16, 'triangle', .09); },
+    hit: function () { tone(150, 0, .2, 'sine', .4, 55); noise(0, .09, .22, 1800); tone(2400, 0, .05, 'square', .04); },
+    shatter: function () { noise(0, .5, .38, 700); tone(95, 0, .35, 'sine', .35, 38); },
+    fanfare: function () { [523, 659, 784, 1047].forEach(function (fq, i) { tone(fq, i * .085, .26, 'triangle', .11); }); }
+  };
+  function sfx(n) { if (!soundOn || noMotion()) return; try { SFX[n](); } catch (e) {} }
+  function buzz(p) {   // phones only, and only after the player has tapped (browsers block it otherwise)
+    var ua = navigator.userActivation;
+    if (!navigator.vibrate || !(ua && ua.hasBeenActive) || !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+    try { navigator.vibrate(p); } catch (e) {}
+  }
+  function soundLabel() {
+    var on = soundOn ? 'on' : 'off';
+    $('snd').innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/>' +
+      (soundOn ? '<path d="M11 5.5c1 .8 1 4.2 0 5M12.8 3.8c2 1.8 2 6.6 0 8.4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>' : '<path d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>') +
+      '</svg>Sound ' + on;
+    $('msnd').textContent = 'Sound: ' + on;
+  }
+  function toggleSound() {
+    soundOn = !soundOn; try { localStorage.setItem('pbSound', soundOn ? '1' : '0'); } catch (e) {}
+    soundLabel(); if (soundOn) sfx('tap');
+  }
+
+  // Step guide: for every screen, one short note next to the thing to tap and a finger on it.
+  // Positions use layout coordinates (cqw), so they stay right while the game is rotated.
+  var tapEl = $('tap'), guideEl = $('guide');
+  function hideTap() { tapEl.classList.remove('on'); guideEl.classList.remove('on'); }
+  function guideFor() {
+    var s = state.step, on = document.querySelector('.scene.on'), full = state.full || state.bank >= state.cap;
+    if (s === 1) return { t: on.querySelector('.btn-g'), side: 'below', under: on.querySelector('.pop'), n: 'NEW FEATURE', x: 'The bank opens at level 5, on Home. Tap <b>GOT IT</b>.' };
+    if (s === 2 && state.broke) return { t: $('replay'), side: 'below', x: '', ring: true };
+    if (s === 2 && state.home >= minFor()) return { t: $('homeTile'), side: 'right', n: 'OPEN IT', x: 'Your bank has <b>' + state.home + ' gold</b>. Tap it to break it.' };
+    if (s === 2) return { t: on.querySelector('.hit[data-go="3"]'), side: 'left', n: 'FILL IT', x: 'Your Piggy Bank is on Home, top left. Play a match to fill it: tap <b>BATTLE</b>.' };
+    if (s === 3) return { t: on.querySelector('.hit[data-after]'), side: 'above', n: 'AFTER A MATCH',
+      x: state.full ? 'Your bank is full, so this match added nothing. Tap <b>CONTINUE</b>.' : 'This match put <b>+' + (state.afterMatch - state.home) + ' gold</b> in your bank, win or lose. Tap <b>CONTINUE</b>.' };
+    if (s === 4 && $('breakBtn').disabled) return { t: on.querySelector('.xbtn'), side: 'above', n: 'NOT YET', x: 'Breaking unlocks at ' + minFor() + ' gold. Close it and play a match.' };
+    if (s === 4) return { t: $('breakBtn'), side: 'below', under: $('bankPop'), n: full ? 'FULL BANK' : 'BREAK IT',
+      x: full ? 'Full bank: <b>600 gold for ' + state.price + '</b>. Tap <b>BREAK</b>.' : 'Break now for <b>' + state.bank + ' gold</b>, or keep filling to ' + fmt(state.cap) + '. Tap <b>BREAK</b>.' };
+    if (s === 5) return { t: on.querySelector('.htile.full'), side: 'right', n: 'FULL BANK', x: 'Full. Matches stop adding gold until you break it. <b>Tap the bank.</b>' };
+    if (s === 6) return { t: $('ycont'), side: 'left', n: 'DONE', x: '<b>' + state.brk + ' gold</b> credited in this demo. Tap <b>CONTINUE</b>.' };
+  }
+  function boxIn(el) {   // centre and half size of an element, in cqw, ignoring transforms
+    var c = posIn(el), u = screen.clientWidth / 100;
+    return { x: c.x, y: c.y, hw: el.offsetWidth / u / 2, hh: el.offsetHeight / u / 2 };
+  }
+  function showTap() {
+    var g = guideFor(); if (!g || !g.t || !g.t.offsetWidth) return;
+    var b = boxIn(g.t);
+    tapEl.style.left = b.x + 'cqw'; tapEl.style.top = b.y + 'cqw'; tapEl.classList.toggle('ring', !!g.ring); tapEl.classList.add('on');
+    if (!g.x) return;
+    $('guideTx').innerHTML = (g.n ? '<span class="gn">' + g.n + '</span>' : '') + g.x;
+    guideEl.style.left = '0'; guideEl.style.top = '0'; guideEl.classList.add('on');
+    var u = screen.clientWidth / 100, tw = guideEl.offsetWidth / u, th = guideEl.offsetHeight / u, gap = 2.6, H = screen.clientHeight / u;
+    var x, y;
+    if (g.side === 'left') { x = b.x - b.hw - gap - tw; y = b.y - th / 2; }
+    else if (g.side === 'right') { x = b.x + b.hw + gap; y = b.y - th / 2; }
+    else if (g.side === 'above') { x = b.x - tw / 2; y = b.y - b.hh - gap - th; }
+    else if (g.under) { var p = boxIn(g.under); x = p.x - tw / 2; y = p.y + p.hh + 1.2; }
+    else { x = b.x - tw / 2; y = b.y + b.hh + gap; }
+    x = Math.max(1, Math.min(99 - tw, x)); y = Math.max(.8, Math.min(H - th - .8, y));
+    guideEl.style.left = x + 'cqw'; guideEl.style.top = y + 'cqw';
+  }
+  var HINT_MS = { 1: 1500, 2: 800, 3: 2300, 4: 800, 5: 1000, 6: 2100 };
+
+  function render() {
+    clearAll(); clearFlies(); stopFrames(); hideTap();
+    var s = state.step;
+    scenes.forEach(function (el) { el.classList.remove('on'); });
+    var cur = document.querySelector('.scene[data-step="' + s + '"]');
+    void cur.offsetWidth; cur.classList.add('on');
+    var lit = s;
+    if ((s === 4 || s === 3) && state.full) lit = 5;
+    stepBtns.forEach(function (b) { b.classList.toggle('on', +b.dataset.step === lit); });
+
+    if (s === 1 || s === 4) later(function () { sfx('whoosh'); }, 40);
+    if (s === 5) later(function () { sfx('sparkle'); }, 450);
+    if (s === 1) renderIntro();
+    if (s === 2) renderHome();
+    if (s === 3) renderMatch(cur);
+    if (s === 4) renderBank();
+    if (s === 6) renderBreak(cur);
+
+    later(showTap, HINT_MS[s] || 2500);
+    $('back').disabled = s === 1;
+    $('next').disabled = s === 6;
+    var h = (s === 4 && state.full) ? 'full-offer' : String(s);
+    if (location.hash !== '#' + h) history.replaceState(null, '', location.search + '#' + h);
+  }
+
+  // Default state when a step is reached from the step bar, Back/Next or the URL
+  function go(step, opts) {
+    if (typeof welcome !== 'undefined' && welcome) welcome.classList.remove('on');
+    opts = opts || {};
+    state = fresh(step);
+    state.full = !!opts.full;
+    state.coach = step === 2;
+    if (step === 4) { state.bank = state.full ? 600 : AFTER; if (!state.full) state.home = AFTER; }
+    render();
+  }
+
+  screen.addEventListener('click', function (e) {
+    hideTap();
+    var t = e.target.closest('[data-go]');
+    if (!t || t.disabled || !t.closest('.scene.on')) return;
+    sfx('tap');
+    var to = +t.dataset.go, d = t.dataset;
+    if (to === 2) {
+      if (d.coach) { go(2); return; }                       // from the intro: show where the bank lives
+      if (d.broke) {                                         // after a break: new 1,000 bank, gold credited
+        var got = state.brk;
+        state = fresh(2); state.broke = true; state.cap = 1000; state.price = PRICE2;
+        state.home = 0; state.gold = GOLD0 + got;
+        render(); return;
+      }
+      if (d.after) {                                         // continue after a match
+        if (state.full) { state.step = 5; render(); return; }
+        state.home = state.afterMatch; state.step = 2; state.coach = false; render(); return;
+      }
+      if (d.close) {                                         // closing the bank goes back to where you were
+        if (state.full) { state.step = 5; render(); return; }
+        state.step = 2; state.coach = false; render(); return;
+      }
+      go(2); return;
+    }
+    if (to === 3) { state.full = !!d.full; state.coach = false; state.step = 3; render(); return; }
+    if (to === 4) {
+      if (d.full) { state.full = true; state.bank = state.cap; }
+      else { state.full = false; state.bank = state.home; }
+      state.step = 4; render(); return;
+    }
+    if (to === 6) { state.brk = state.bank; state.step = 6; render(); return; }
+    go(to);
+  });
+
+  // Keyboard: Enter or Space on a game hotspot acts like a tap
+  screen.addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"][data-go]')) { e.preventDefault(); e.target.click(); }
+  });
+  $('rulesChip').addEventListener('click', function () {
+    setRules(!this.classList.contains('active'));
+  });
+
+  function next() {
+    if (welcome && welcome.classList.contains('on')) return start();
+    if (state.step === 4 && state.full) return go(6);
+    if (state.step === 3 && state.full) return go(4, { full: true });
+    if (state.step < 6) go(state.step + 1);
+  }
+  function back() {
+    if (state.step === 4 && state.full) return go(5);
+    if (state.step === 3 && state.full) return go(5);
+    if (state.step > 1) go(state.step - 1);
+  }
+  stepBtns.forEach(function (b) { b.addEventListener('click', function () { go(+b.dataset.step); }); });
+  $('back').addEventListener('click', back);
+  $('replay').addEventListener('click', function () { sfx('tap'); go(1); });
+  $('snd').addEventListener('click', toggleSound);
+  soundLabel();
+  // Turning the phone opens the game. With rotation lock off the browser turns by itself (landscape CSS).
+  // With rotation lock on, the motion sensor tells us the phone is sideways and which way, and we
+  // rotate the game ourselves. iPhone asks for one tap to allow the sensor; Android does not.
+  var rotNow = null, ySign = 0;
+  function setRot(dir) {
+    if (dir === rotNow) return;
+    rotNow = dir;
+    root.classList.toggle('rot', !!dir); root.classList.toggle('ccw', dir === 'ccw');
+    root.style.setProperty('--rot', dir === 'ccw' ? '-90deg' : '90deg');
+    if (mmenu) mmenu.classList.remove('on');
+    render();
+  }
+  function onMotion(e) {
+    var g = e.accelerationIncludingGravity; if (!g || g.x == null) return;
+    if (!(window.matchMedia && matchMedia('(orientation: portrait)').matches)) { if (rotNow) setRot(null); return; }
+    var x = g.x, y = g.y;
+    if (Math.abs(y) > 7 && Math.abs(x) < 4) { ySign = y > 0 ? 1 : -1; setRot(null); return; }   // upright: also learns the platform's sign
+    if (Math.abs(x) > 7 && Math.abs(y) < 4.5) {
+      var s = ySign || 1;                    // spec: upright reads y > 0; some iPhones report the opposite sign
+      var topLeft = (x * s) > 0;             // phone turned counter-clockwise, top to the left
+      setRot(topLeft ? 'cw' : 'ccw');
+    }
+  }
+  // Listen straight away (Android sends data without asking); where the browser asks first (iPhone),
+  // one tap on the turn screen grants it. The hint hides as soon as real sensor data arrives.
+  var needsAsk = window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function';
+  if (window.DeviceMotionEvent) window.addEventListener('devicemotion', function (e) {
+    var g = e.accelerationIncludingGravity;
+    if (g && g.x != null) $('turnHint').hidden = true;
+    onMotion(e);
+  });
+  if (needsAsk) {
+    $('turnHint').hidden = false;
+    $('turn').addEventListener('click', function () {
+      DeviceMotionEvent.requestPermission().then(function (st) {
+        if (st === 'granted') $('turnHint').hidden = true;
+      }).catch(function () {});
+    });
+  }
+  var mmenu = $('mmenu');
+  if (!document.documentElement.requestFullscreen) $('mfs').style.display = 'none';
+  $('mtab').addEventListener('click', function () {
+    mmenu.querySelectorAll('[data-m]').forEach(function (b) { b.classList.toggle('on', b.dataset.m === String(state.step)); });
+    mmenu.classList.add('on');
+  });
+  mmenu.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-m]');
+    if (!b) { if (e.target === mmenu) mmenu.classList.remove('on'); return; }
+    var m = b.dataset.m;
+    if (m === 'snd') { toggleSound(); return; }
+    mmenu.classList.remove('on');
+    if (m === 'fs') { try { document.documentElement.requestFullscreen().catch(function () {}); } catch (err) {} return; }
+    if (m !== 'x') go(+m);
+  });
+  window.addEventListener('resize', hideTap);
+  $('next').addEventListener('click', next);
+  document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); back(); }
+  });
+
+  function fromHash() {
+    var h = (location.hash || '').replace('#', '');
+    if (h === 'full-offer') return go(4, { full: true });
+    var n = parseInt(h, 10);
+    go(n >= 1 && n <= 6 ? n : 1);
+  }
+  window.addEventListener('hashchange', fromHash);
+  var welcome = $('welcome');
+  function start() { welcome.classList.remove('on'); sfx('tap'); go(1); }
+  $('startBtn').addEventListener('click', start);
+  if (root.classList.contains('hero')) { fromHash(); }
+  else {
+    state = fresh(1);
+    welcome.classList.add('on');
+    later(function () {   // a finger on START after a moment
+      var b = boxIn($('startBtn')); tapEl.style.left = b.x + 'cqw'; tapEl.style.top = b.y + 'cqw'; tapEl.classList.add('on');
+    }, 1400);
+  }
+})();
+</script>
+</body>
+</html>
