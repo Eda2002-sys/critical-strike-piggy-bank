@@ -612,13 +612,13 @@
 
 
   /* Step guide: a CS-style yellow tutorial note next to the thing to tap, plus a finger on it */
-  .rtog { position: absolute; left: 50%; top: 1.4%; transform: translateX(-50%); z-index: 8; display: flex; align-items: center; gap: .3cqw;
+  .rtog { position: absolute; left: 6.5%; top: 86.5%; z-index: 8;   /* bottom left: a tap on the top edge would bring back iOS Safari's bars */ display: flex; align-items: center; gap: .3cqw;
     padding: .25cqw .3cqw .25cqw .7cqw; background: rgba(10,12,16,.82); border: .12cqw dashed #ffd21a; border-radius: .5cqw; }
   .rtog span { font-family: "Russo One"; font-size: .85cqw; color: #ffd21a; letter-spacing: .08em; margin-right: .3cqw; }
   .rtog button { font-family: "Russo One"; font-size: 1.05cqw; color: #c3c8d1; background: transparent; border: 0; border-radius: .35cqw; padding: .3cqw .9cqw; cursor: pointer; }
   .rtog button.on { background: #ffd21a; color: #111; }
   .rtog button { position: relative; }
-  .rtog button::after { content: ""; position: absolute; left: -.5cqw; right: -.5cqw; top: -1.6cqw; bottom: -3.2cqw; }   /* about 44 px tall on a phone, growing down because the switch sits at the top edge */
+  .rtog button::after { content: ""; position: absolute; left: -.5cqw; right: -.5cqw; top: -2.4cqw; bottom: -2.4cqw; }   /* about 44 px tall on a phone */
   html.hero .rtog { display: none; }
   .guide { position: absolute; left: 0; top: 0; z-index: 9; display: none; pointer-events: none; width: max-content; max-width: 27cqw; }
   .guide.on { display: block; animation: fadeUp .3s var(--ease-out) both; }
