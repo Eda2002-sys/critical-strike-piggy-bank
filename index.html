@@ -650,6 +650,8 @@
   @keyframes tapRing { 0% { transform: scale(.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
   @keyframes tapPress { 0%, 100% { transform: translate(.6cqw, .8cqw); } 40% { transform: translate(0, 0) scale(.92); } }
 
+  /* Sound is always on: the toggle stays in the markup for the script but is not shown */
+  .nav .snd, #msnd { display: none !important; }
   /* Sound toggle under the frame */
   .nav .snd { padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
   .nav .snd svg { width: 16px; height: 16px; }
@@ -1424,7 +1426,6 @@
 
   // Sound: small synthesised effects (no files), started by the first tap, with an on/off switch
   var AC = null, master = null, soundOn = true;
-  try { if (localStorage.getItem('pbSound') === '0') soundOn = false; } catch (e) {}
   // Real Critical Strike sounds, cut from my own screen recording: button tap, victory sting,
   // chest opening ("YOU GOT"), gold collect. Hammer hits and the crack stay synthesised.
   var CLIPS = { tap: 'assets/sfx-tap.mp3', victory: 'assets/sfx-victory.mp3',
